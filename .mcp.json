@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "kaggle": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://www.kaggle.com/mcp",
+        "--header",
+        "Authorization: Bearer ${KAGGLE_TOKEN}"
+      ],
+      "env": {}
+    }
+  }
+}
