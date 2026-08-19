@@ -1,121 +1,262 @@
-# AIC_TTVN
+# AIC-TTVN
 
-**Hệ thống truy vấn sự kiện từ video bằng đa phương thức** — _Vietnamese AI Challenge video retrieval system_
+Hệ thống truy xuất video đa phương thức dành cho AIC, gồm giao diện React,
+FastAPI, PostgreSQL, MinIO, Milvus và các pipeline trích xuất đặc trưng chạy
+trên Kaggle.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688)](https://fastapi.tiangolo.com/)
-[![React](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61dafb)](https://vite.dev/)
-[![AI Challenge](https://img.shields.io/badge/competition-AI%20Challenge-7c3aed)](#)
+Hiện tại ứng dụng hỗ trợ tìm kiếm hình ảnh bằng OpenCLIP và tìm kiếm lời nói
+ASR. Notebook OCR và object detection đã được tổ chức trong pipeline, nhưng
+chưa nối thành chỉ mục tìm kiếm trên giao diện.
 
----
+## Kiến trúc
 
-Người dùng nhập mô tả **tiếng Việt** → hệ thống trả về các **keyframe / khoảnh khắc khớp nhất** trong kho video, sử dụng tìm kiếm đa phương thức: **CLIP** (text↔ảnh), **OCR** (chữ trong ảnh), **ASR** (lời thoại) và **lọc object**.
+```text
+Kaggle artifacts ──> Import pipeline ──> PostgreSQL (metadata, ASR)
+                                      ├─> Milvus (visual vectors)
+                                      └─> MinIO (keyframes, artifacts)
+                                                  │
+React UI <────────────── FastAPI <────────────────┘
+```
 
-> Users type a **Vietnamese** description and get the **best-matching keyframes** across a video corpus, powered by multimodal retrieval: **CLIP** (text↔image), **OCR** (in-frame text), **ASR** (speech), and **object filtering**.
-
-## ✨ Tính năng / Features
-
-| Tiếng Việt | English |
+| Thành phần | Vai trò |
 |---|---|
-| Truy vấn ngữ nghĩa Text→Ảnh bằng CLIP | Semantic text-to-image retrieval with CLIP |
-| Dịch tự động query TV→EN trước khi encode | Automatic query translation VI→EN before encoding |
-| Nhận diện chữ (OCR) & lời thoại (ASR) | In-frame text (OCR) & speech (ASR) recognition |
-| Lọc theo đối tượng (object detection) | Object-based filtering |
-| Temporal query — chuỗi sự kiện nối tiếp | Temporal query — sequences of events |
-| Xuất file nộp bài đúng format AIC | Export submissions in the official AIC format |
+| `apps/frontend` | Giao diện React/Vite |
+| `apps/api` | REST API và phục vụ bản frontend đã build |
+| `retrieval` | Import dữ liệu, lưu trữ và tìm kiếm |
+| `pipelines/kaggle` | Notebook trích xuất shot, embedding, OCR, ASR và object |
+| `data/source/aic2026` | Metadata và keyframe mapping nhỏ từ ban tổ chức |
+| `artifacts` | Quy ước lưu artifact; không chứa dữ liệu lớn trên Git |
+| `alembic` | Migration PostgreSQL |
+| `scripts` | Script cài đặt, chạy, dừng và kiểm tra repository |
 
-## 🏗 Kiến trúc / Architecture
+## Lưu ý về dữ liệu
 
+GitHub chỉ chứa mã nguồn và metadata nhỏ. Repository **không chứa** video,
+frame ảnh, embedding, transcript ASR, dữ liệu PostgreSQL, MinIO hoặc Milvus.
+
+Vì vậy, sau khi clone:
+
+- Có thể dựng hạ tầng, mở UI và kiểm tra API health ngay.
+- Chức năng tìm kiếm chỉ hoạt động sau khi import artifact Kaggle; trước đó API
+  tìm kiếm có thể báo chưa tồn tại collection/index.
+- Thành viên trong nhóm cần nhận bộ artifact từ người quản lý dự án hoặc tự
+  chạy notebook Kaggle để tạo lại.
+
+## Yêu cầu
+
+Khuyến nghị máy có ít nhất 8 GB RAM và còn khoảng 10 GB dung lượng trống cho
+dependency, Docker image và model. Dữ liệu thật sẽ cần thêm dung lượng tùy số
+lượng video.
+
+| Công cụ | Phiên bản khuyến nghị |
+|---|---|
+| Git | Bản mới ổn định |
+| Docker Desktop | Có Docker Compose, Docker Engine đang chạy |
+| Python | `3.11.x` |
+| uv | `0.8+` |
+| Node.js | `20+` |
+| npm | Đi kèm Node.js |
+
+Cài `uv` nếu máy chưa có:
+
+```powershell
+winget install --id=astral-sh.uv -e
 ```
-┌─────────────┐   HTTP/JSON   ┌──────────────┐   vector search   ┌─────────────┐
-│ React (UI)  │ ─────────────▶│ FastAPI      │ ─────────────────▶│ FAISS index │
-│ - ô tìm kiếm│               │ - /search    │                   │ + metadata  │
-│ - lưới ảnh  │◀───────────── │ - /video     │◀───────────────── │ (keyframes) │
-│ - export    │   kết quả     │ - /export    │                   └─────────────┘
-└─────────────┘               └──────┬───────┘
-                                     │ dịch TV→EN → CLIP text encode
-                                     ▼
-                       AI pipeline (offline indexing)
+
+## Chạy nhanh trên Windows
+
+Đây là luồng được kiểm tra chính thức của repository.
+
+### 1. Clone repository
+
+```powershell
+git clone https://github.com/toilaMif/AIC_TTVN.git
+cd AIC_TTVN
 ```
 
-- **Luồng offline / Offline:** `video → keyframe → CLIP embed → FAISS index + metadata (OCR/ASR/object)` — chạy trên GPU.
-- **Luồng online / Online:** `query TV → dịch EN → encode → FAISS search → gộp metadata → trả về UI`.
+### 2. Thiết lập lần đầu
 
-## 📁 Cấu trúc thư mục / Project structure
+Mở Docker Desktop, đợi Docker Engine chạy xong rồi thực hiện:
 
-```
-AIC_TTVN/
-├── ai/                      # AI pipeline — indexing & search engine (Python)
-├── backend/                 # FastAPI — phục vụ API / serves the API
-├── frontend/                # React (Vite) — giao diện / web UI
-├── docs/                    # Tài liệu bổ sung / supplementary docs
-├── data/                    # (gitignored) raw video + processed index
-├── scripts/                 # Tiện ích thao tác repo / repo utilities
-├── docker-compose.yml       # (GĐ5) chạy cả stack / run the full stack
-└── README.md
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/setup-local.ps1
 ```
 
-Chi tiết hướng dẫn trong từng thư mục — _see each subfolder for details_:
-[`ai/`](ai/README.md) · [`backend/`](backend/README.md) · [`frontend/`](frontend/README.md) · [`docs/`](docs/README.md)
+Script này sẽ:
 
-## 🚀 Bắt đầu nhanh / Quick start
+1. Tạo `.env` từ `.env.example` nếu chưa có.
+2. Tạo thư mục dữ liệu local trong `.runtime`.
+3. Cài dependency Python từ `uv.lock`.
+4. Cài và build frontend React.
+5. Khởi động PostgreSQL, MinIO, etcd và Milvus.
+6. Chạy migration database.
 
-> Yêu cầu / _Prereqs_: Python ≥ 3.11, Node.js ≥ 20, npm
+### 3. Mở ứng dụng
 
-### 1. Cài đặt / Install
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/start-local-ui.ps1
+```
+
+Các địa chỉ local:
+
+| Dịch vụ | Địa chỉ |
+|---|---|
+| Giao diện | <http://127.0.0.1:8000/ui/> |
+| API health | <http://127.0.0.1:8000/health> |
+| API docs | <http://127.0.0.1:8000/docs> |
+| MinIO console | <http://127.0.0.1:9001> |
+
+### 4. Dừng hệ thống
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/stop-local.ps1
+```
+
+Lệnh dừng không xóa dữ liệu trong `.runtime`. Những lần sau chỉ cần chạy lại
+`scripts/start-local-ui.ps1`.
+
+## Cài đặt thủ công trên macOS/Linux
+
+Sửa các đường dẫn trong `.env` nếu cần, sau đó chạy. Trên máy Apple Silicon,
+Milvus có thể cần bật chế độ tương thích `amd64` của Docker Desktop.
 
 ```bash
-# AI pipeline
-cd ai
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-
-# Backend
-cd ../backend
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-
-# Frontend
-cd ../frontend
-npm install
+cp .env.example .env
+mkdir -p .runtime/postgres .runtime/minio .runtime/milvus .runtime/etcd
+mkdir -p .runtime/artifacts/kaggle
+uv sync --frozen
+npm --prefix apps/frontend ci
+npm --prefix apps/frontend run build
+docker compose up -d
+uv run alembic upgrade head
+uv run uvicorn apps.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-### 2. Cấu hình / Configure
+Mở <http://127.0.0.1:8000/ui/>. Dừng API bằng `Ctrl+C`, sau đó dừng Docker:
 
 ```bash
-cp .env.example .env        # điền các giá trị cần thiết / fill in the values
+docker compose down
 ```
 
-### 3. Chạy dev / Run
+## Nạp dữ liệu để tìm kiếm
 
-```bash
-# Backend (port 8000)
-uvicorn main:app --reload
+### 1. Import metadata nguồn
 
-# Frontend (port 5173)
-npm run dev
+Trên database mới, chạy:
+
+```powershell
+uv run python -m retrieval.cli.data audit
+uv run python -m retrieval.cli.data import-metadata
 ```
 
-## 🧪 Kiểm thử / Testing
+### 2. Chuẩn bị artifact Kaggle
 
-```bash
-# Python (ai/ + backend/)
-pytest
+Tạo cấu trúc cho một batch, ví dụ `l21`:
 
-# Frontend
-npm test
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/init-kaggle-batch.ps1 -Batch l21
 ```
 
-## 📄 Tài liệu tham khảo / References
+Đặt ZIP được tải từ Kaggle vào đúng stage:
 
-- [`pipeline.md`](pipeline.md) — kế hoạch & lộ trình chi tiết / detailed plan & roadmap (VI)
-- [`doing.md`](doing.md) — ghi chú việc đang làm / work-in-progress notes
+```text
+.runtime/artifacts/kaggle/l21/
+├── 01-shot-keyframes/
+├── 02-visual-embeddings/
+├── 03-ocr/
+├── 04-asr/
+├── 05-object-detection/
+└── _runtime/
+```
 
-## 🧑‍💻 Đóng góp / Contributing
+Ví dụ tên file:
 
-Vui lòng đọc [`CONTRIBUTING.md`](CONTRIBUTING.md) trước khi tạo pull request — _please read before opening a PR_.
+```text
+01-shot-keyframe-L21_V001.zip
+02-visual-embedding-L21_V001.zip
+04-asr-vietnamese-L21_V001.zip
+```
 
-## ⚖️ Giấy phép / License
+Nếu artifact lớn, nên lưu ngoài repository. Ví dụ sửa `.env`:
 
-[MIT](LICENSE) © 2026 AIC_TTVN contributors
+```dotenv
+AIC_KAGGLE_ARTIFACT_ROOT=D:/AIC_TTVN_DATA/artifacts/kaggle
+AIC_KAGGLE_BATCH=l21
+```
+
+### 3. Rebuild chỉ mục
+
+Kiểm tra đúng batch trong `.env`, sau đó chạy:
+
+```powershell
+uv run python scripts/rebuild_kaggle_index.py --confirm-rebuild
+```
+
+> Cảnh báo: lệnh này xóa và dựng lại dữ liệu đặc trưng hiện tại trong
+> PostgreSQL, MinIO và Milvus. Không chạy chỉ để mở UI. Với máy đã có index,
+> hãy sao lưu trước khi rebuild.
+
+Lần truy vấn visual đầu tiên có thể chậm do OpenCLIP tải model về máy. Các lần
+sau model được dùng từ cache local.
+
+## Chạy frontend ở chế độ phát triển
+
+Terminal 1:
+
+```powershell
+uv run uvicorn apps.api.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Terminal 2:
+
+```powershell
+npm --prefix apps/frontend run dev
+```
+
+Mở <http://127.0.0.1:5173>. Vite sẽ proxy các request API sang FastAPI.
+
+## Kiểm tra trước khi đưa lên GitHub
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/check-repository.ps1
+git status
+git diff --check
+```
+
+Nếu mọi kiểm tra đều đạt, xem kỹ danh sách file rồi mới commit:
+
+```powershell
+git add -A
+git status
+git commit -m "Prepare AIC-TTVN for local development"
+git push origin main
+```
+
+Không được commit `.env`, `.runtime`, video, model, embedding, file ZIP Kaggle
+hoặc credential thật. Xem thêm [hướng dẫn artifact](artifacts/README.md) và
+[hướng dẫn pipeline Kaggle](pipelines/kaggle/README.md).
+
+## Xử lý lỗi thường gặp
+
+### Docker chưa chạy
+
+Mở Docker Desktop và chờ trạng thái Engine running, sau đó chạy lại setup.
+
+### Port đã được sử dụng
+
+Các port mặc định là `8000`, `55432`, `9000`, `9001` và `19530`. Có thể đổi
+port tương ứng trong `.env` nếu máy đang dùng các port này.
+
+### UI vẫn là bản cũ
+
+Build lại frontend rồi tải cứng trình duyệt bằng `Ctrl+F5`:
+
+```powershell
+npm --prefix apps/frontend run build
+```
+
+### Truy vấn chưa hoạt động hoặc không có kết quả
+
+Kiểm tra đã import metadata và artifact Kaggle chưa. Một bản clone mới chỉ có
+database rỗng nên UI và health endpoint chạy được nhưng chưa có index để tìm
+kiếm.

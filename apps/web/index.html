@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AIC-TTVN Spatial Retrieval</title>
+    <link rel="stylesheet" href="/ui/styles.css">
+  </head>
+  <body>
+    <main class="workspace">
+      <aside class="control-panel">
+        <div class="brand-row">
+          <img class="brand-logo" src="/assets/LogoAIC_TTVN_1.png" alt="TTVN logo">
+          <div><strong>Video Search AIC</strong><span>TTVN - IUH</span></div>
+        </div>
+
+        <div class="section-title-row">
+          <span class="field-label">Query inputs</span>
+          <button id="add-input" class="text-button" type="button">+ Add input</button>
+        </div>
+        <div id="query-inputs" class="query-inputs"></div>
+        <button id="search" class="primary">Search <kbd>Ctrl</kbd><kbd>Enter</kbd></button>
+
+        <section class="panel-section">
+          <div class="section-title">Search mode</div>
+          <div class="segmented" role="tablist">
+            <button class="mode active" data-mode="whole">Whole image</button>
+            <button class="mode" data-mode="localized">Localized</button>
+            <button class="mode" data-mode="conjunctive">Conjunctive</button>
+          </div>
+        </section>
+
+        <section class="panel-section region-section">
+          <div class="section-title-row"><div class="section-title">Local query boxes</div><button id="clear-clauses" class="text-button">Clear</button></div>
+          <div class="new-clause">
+            <input id="new-clause-text" placeholder="e.g. diver">
+            <button id="add-clause" class="secondary">Add box</button>
+          </div>
+          <div class="spatial-canvas" id="spatial-canvas" aria-label="Spatial query editor"></div>
+          <label class="check-row"><input id="show-coordinates" type="checkbox" checked> Show coordinates</label>
+          <div class="clause-list" id="clauses"></div>
+          <button id="submit-spatial" class="spatial-submit">Submit spatial query</button>
+        </section>
+
+        <section class="panel-section compact-fields">
+          <label>Candidate pool <input id="candidate-k" type="number" min="20" max="500" value="200"></label>
+          <label>Results <input id="top-k" type="number" min="1" max="100" value="20"></label>
+          <label>Max / shot <input id="max-shot" type="number" min="1" max="4" value="1"></label>
+        </section>
+
+        <div class="status" id="status">Ready · visual and ASR retrieval</div>
+      </aside>
+
+      <section class="results-area">
+        <div class="loading-overlay" id="loading-overlay" hidden>
+          <div class="loading-box">
+            <div class="spinner" aria-hidden="true"></div>
+            <strong>Searching video frames</strong>
+            <span id="loading-stage">Loading OpenCLIP and querying Milvus...</span>
+            <time id="loading-time">0.0s</time>
+            <small>The first visual query may take 15–30 seconds. ASR lexical search is usually immediate.</small>
+          </div>
+        </div>
+        <header class="results-header">
+          <div><span class="eyebrow">RESULTS</span><h1 id="result-title">flooded street at night</h1></div>
+          <div class="header-meta"><span id="search-time">Not searched</span><span id="count">0 results</span><span class="mode-pill" id="mode-pill">WHOLE IMAGE</span></div>
+        </header>
+        <div class="notice" id="notice">Add Visual or ASR inputs. OCR and Object controls are reserved for their upcoming indexes.</div>
+        <div class="result-grid" id="results"></div>
+      </section>
+    </main>
+    <script src="/ui/app.js"></script>
+  </body>
+</html>

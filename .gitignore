@@ -40,6 +40,18 @@ ENV/
 data/raw/
 data/processed/
 models/weights/
+data/manifests/*.local.*
+artifacts/kaggle/
+archive/
+
+# ===== Local runtime volumes and artifacts =====
+AIC_TTVN_DATA/
+.runtime/
+jobs/input/
+jobs/output/
+*.faiss
+*.npy
+*.npz
 
 # ===== Environment & secrets =====
 .env
@@ -57,3 +69,9 @@ credentials.json
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ===== Local assistant/editor settings =====
+.claude/settings.local.json
+
+# ===== Generated documentation artifacts =====
+docs/**/*.html
