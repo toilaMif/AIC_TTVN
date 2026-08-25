@@ -1,26 +1,52 @@
 {
-    "author": "HTV Sports",
-    "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
-    "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
-    "description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
-    "keywords": [
-        "HTVTheThao",
-        "HTVSports",
-        "htv the thao",
-        "HTV Thể thao",
-        "serie a",
-        "Serie A",
-        "Serie A 2022 - 2023",
-        "giải vô địch ý",
-        "cúp quốc gia ý",
-        "cup quoc gia italia",
-        "Cúp quốc gia Italia",
-        "ONE championship",
-        "one championship"
-    ],
-    "length": 522,
-    "publish_date": "13/01/2024",
-    "thumbnail_url": "https://i.ytimg.com/vi/uRq1WNxJfqw/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgTChPMA8=&rs=AOn4CLBqm5vhYxox8AqBeh-bUmBxiBxe3Q",
-    "title": "Hồng Sư Vượt Trường Sơn Hái Linh Chi  Đoàn Lân Minh Hào Đường - Quận 5  Cúp Chợ Lớn - HTV 2024",
-    "watch_url": "https://youtube.com/watch?v=uRq1WNxJfqw"
+  "author": "HTV Sports",
+  "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
+  "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
+  "description": "Video ghi lại tiết mục lân sư rồng Hồng Sư Vượt Trường Sơn Hái Linh Chi Đoàn Lân Minh Hào Đường - Quận 5 Cúp Chợ Lớn - HTV 2024.\n\nNội dung chính:\n- Chủ đề theo tiêu đề: Hồng Sư Vượt Trường Sơn Hái Linh Chi Đoàn Lân Minh Hào Đường - Quận 5 Cúp Chợ Lớn - HTV 2024.",
+  "keywords": [
+    "HTVTheThao",
+    "HTVSports",
+    "htv the thao",
+    "serie a",
+    "Serie A 2022 - 2023",
+    "giải vô địch ý",
+    "cúp quốc gia ý",
+    "cup quoc gia italia",
+    "ONE championship",
+    "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024",
+    "Hồng Sư Vượt Trường Sơn Hái Linh Chi Đoàn Lân Minh Hào Đường - Quận 5 Cúp Chợ Lớn - HTV 2024"
+  ],
+  "length": 522,
+  "publish_date": "13/01/2024",
+  "thumbnail_url": "https://i.ytimg.com/vi/uRq1WNxJfqw/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgTChPMA8=&rs=AOn4CLBqm5vhYxox8AqBeh-bUmBxiBxe3Q",
+  "title": "Hồng Sư Vượt Trường Sơn Hái Linh Chi  Đoàn Lân Minh Hào Đường - Quận 5  Cúp Chợ Lớn - HTV 2024",
+  "watch_url": "https://youtube.com/watch?v=uRq1WNxJfqw",
+  "video_id": "L24_V013",
+  "source_description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
+  "topic": "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024: Hồng Sư Vượt Trường Sơn Hái Linh Chi Đoàn Lân Minh Hào Đường - Quận 5 Cúp Chợ Lớn - HTV 2024",
+  "key_points": [
+    "Chủ đề theo tiêu đề: Hồng Sư Vượt Trường Sơn Hái Linh Chi Đoàn Lân Minh Hào Đường - Quận 5 Cúp Chợ Lớn - HTV 2024."
+  ],
+  "subject_terms": [],
+  "asr": {
+    "status": "no_speech",
+    "quality": "unavailable",
+    "language": null,
+    "duration_sec": null,
+    "word_count": 0,
+    "segment_count": 0,
+    "pipeline_version": null,
+    "transcript_sha256": null,
+    "source_copy_count": 0,
+    "duplicate_content_ids": [],
+    "title_token_coverage": null,
+    "possible_title_transcript_conflict": false,
+    "note": "No usable transcript was produced by the ASR stage."
+  },
+  "summary_provenance": {
+    "method": "deterministic-title-description-asr-extractive-v1",
+    "sources": [
+      "title"
+    ]
+  }
 }

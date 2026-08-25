@@ -1,26 +1,55 @@
 {
-    "author": "HTV Sports",
-    "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
-    "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
-    "description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
-    "keywords": [
-        "HTVTheThao",
-        "HTVSports",
-        "htv the thao",
-        "HTV Thể thao",
-        "serie a",
-        "Serie A",
-        "Serie A 2022 - 2023",
-        "giải vô địch ý",
-        "cúp quốc gia ý",
-        "cup quoc gia italia",
-        "Cúp quốc gia Italia",
-        "ONE championship",
-        "one championship"
-    ],
-    "length": 556,
-    "publish_date": "16/01/2024",
-    "thumbnail_url": "https://i.ytimg.com/vi/23dowUaEMns/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgRCgvMA8=&rs=AOn4CLDI1yeivjj_CV_ppTjcohEoz3bt9w",
-    "title": "Đường Tăng Giải Cứu Mỹ Hầu Vương  Đoàn Lân Hội Quán Nghĩa An - Quận 5  Cúp Chợ Lớn - HTV 2024",
-    "watch_url": "https://youtube.com/watch?v=23dowUaEMns"
+  "author": "HTV Sports",
+  "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
+  "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
+  "description": "Video ghi lại tiết mục lân sư rồng Đường Tăng Giải Cứu Mỹ Hầu Vương Đoàn Lân Hội Quán Nghĩa An - Quận 5 Cúp Chợ Lớn - HTV 2024.\n\nNội dung chính:\n- Chủ đề theo tiêu đề: Đường Tăng Giải Cứu Mỹ Hầu Vương Đoàn Lân Hội Quán Nghĩa An - Quận 5 Cúp Chợ Lớn - HTV 2024.",
+  "keywords": [
+    "HTVTheThao",
+    "HTVSports",
+    "htv the thao",
+    "serie a",
+    "Serie A 2022 - 2023",
+    "giải vô địch ý",
+    "cúp quốc gia ý",
+    "cup quoc gia italia",
+    "ONE championship",
+    "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024",
+    "Đường Tăng Giải Cứu Mỹ Hầu Vương Đoàn Lân Hội Quán Nghĩa An - Quận 5 Cúp Chợ Lớn - HTV 2024",
+    "video hấp",
+    "hấp dẫn"
+  ],
+  "length": 556,
+  "publish_date": "16/01/2024",
+  "thumbnail_url": "https://i.ytimg.com/vi/23dowUaEMns/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgRCgvMA8=&rs=AOn4CLDI1yeivjj_CV_ppTjcohEoz3bt9w",
+  "title": "Đường Tăng Giải Cứu Mỹ Hầu Vương  Đoàn Lân Hội Quán Nghĩa An - Quận 5  Cúp Chợ Lớn - HTV 2024",
+  "watch_url": "https://youtube.com/watch?v=23dowUaEMns",
+  "video_id": "L24_V042",
+  "source_description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
+  "topic": "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024: Đường Tăng Giải Cứu Mỹ Hầu Vương Đoàn Lân Hội Quán Nghĩa An - Quận 5 Cúp Chợ Lớn - HTV 2024",
+  "key_points": [
+    "Chủ đề theo tiêu đề: Đường Tăng Giải Cứu Mỹ Hầu Vương Đoàn Lân Hội Quán Nghĩa An - Quận 5 Cúp Chợ Lớn - HTV 2024."
+  ],
+  "subject_terms": [],
+  "asr": {
+    "status": "insufficient",
+    "quality": "low",
+    "language": "vi",
+    "duration_sec": 556.3965625,
+    "word_count": 45,
+    "segment_count": 3,
+    "pipeline_version": "aicv3-asr-vi",
+    "transcript_sha256": "4e16151a60152acd41dbbd1d0220b1c9d6c8cfae926efb759f02a39f1a4ae97f",
+    "source_copy_count": 1,
+    "duplicate_content_ids": [],
+    "title_token_coverage": 0.0,
+    "possible_title_transcript_conflict": false,
+    "note": "ASR may contain recognition errors in names, numbers, and specialized terms."
+  },
+  "summary_provenance": {
+    "method": "deterministic-title-description-asr-extractive-v1",
+    "sources": [
+      "title",
+      "asr"
+    ]
+  }
 }

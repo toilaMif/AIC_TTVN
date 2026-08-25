@@ -4,14 +4,14 @@ Hệ thống truy xuất video đa phương thức dành cho AIC, gồm giao di�
 FastAPI, PostgreSQL, MinIO, Milvus và các pipeline trích xuất đặc trưng chạy
 trên Kaggle.
 
-Hiện tại ứng dụng hỗ trợ tìm kiếm hình ảnh bằng OpenCLIP và tìm kiếm lời nói
-ASR. Notebook OCR và object detection đã được tổ chức trong pipeline, nhưng
-chưa nối thành chỉ mục tìm kiếm trên giao diện.
+Hiện tại ứng dụng hỗ trợ tìm kiếm hình ảnh bằng OpenCLIP, lời nói ASR, chữ OCR
+và nhãn object detection. Dữ liệu frame-understanding/scene filter chỉ khả dụng
+khi batch có output stage 06.
 
 ## Kiến trúc
 
 ```text
-Kaggle artifacts ──> Import pipeline ──> PostgreSQL (metadata, ASR)
+Kaggle artifacts ──> Import pipeline ──> PostgreSQL (metadata, ASR, OCR, object)
                                       ├─> Milvus (visual vectors)
                                       └─> MinIO (keyframes, artifacts)
                                                   │
@@ -166,6 +166,7 @@ powershell -ExecutionPolicy Bypass -File scripts/init-kaggle-batch.ps1 -Batch l2
 ├── 03-ocr/
 ├── 04-asr/
 ├── 05-object-detection/
+├── 06-frame-understanding/
 └── _runtime/
 ```
 
@@ -192,12 +193,43 @@ Kiểm tra đúng batch trong `.env`, sau đó chạy:
 uv run python scripts/rebuild_kaggle_index.py --confirm-rebuild
 ```
 
+Nếu thư mục batch có tên khác cấu hình `.env`, có thể truyền trực tiếp:
+
+```powershell
+uv run python scripts/rebuild_kaggle_index.py `
+  --output-root D:/AIC_TTVN_DATA/artifacts/kaggle/l21a `
+  --confirm-rebuild
+```
+
 > Cảnh báo: lệnh này xóa và dựng lại dữ liệu đặc trưng hiện tại trong
 > PostgreSQL, MinIO và Milvus. Không chạy chỉ để mở UI. Với máy đã có index,
 > hãy sao lưu trước khi rebuild.
 
 Lần truy vấn visual đầu tiên có thể chậm do OpenCLIP tải model về máy. Các lần
 sau model được dùng từ cache local.
+
+## Tìm kiếm Visual bằng tiếng Việt (dịch máy)
+
+OpenCLIP (`ViT-B-32/laion2b_s34b_b79k`) hiểu tiếng Anh tốt hơn hẳn tiếng Việt.
+Vì vậy trước khi encode câu truy vấn Visual, hệ thống tự động dịch câu tiếng
+Việt sang tiếng Anh bằng model
+[`vinai/vinai-translate-vi2en-v2`](https://huggingface.co/vinai/vinai-translate-vi2en-v2)
+(mBART, VinAI Research) — xem `translate_vi_to_en()` trong
+`retrieval/search/global_visual.py`. Bước dịch này áp dụng cho cả
+`/search/visual` và `/search/localized`.
+
+**Lưu ý khi cấu hình model:**
+- Model là mBART nên tokenizer bắt buộc phải load với `src_lang="vi_VN"`, và
+  lúc `generate()` phải truyền `decoder_start_token_id=tokenizer.lang_code_to_id["en_XX"]`.
+  Thiếu 1 trong 2 sẽ khiến bản dịch ra toàn từ lặp vô nghĩa (đã gặp lỗi này khi
+  làm theo đúng ví dụ ngắn gọn trên model card — code mẫu đầy đủ nằm ở
+  [repo GitHub VinAI_Translate](https://github.com/VinAIResearch/VinAI_Translate),
+  không phải trên trang model card).
+- Câu tiếng Việt **không dấu** dịch rất kém (model được huấn luyện trên văn
+  bản có dấu đầy đủ) — nhắc người dùng gõ có dấu khi tìm Visual.
+- Dependency cần thêm: `transformers`, `sentencepiece` (đã có trong
+  `pyproject.toml`). Lần chạy đầu tự tải model (~vài trăm MB) từ HuggingFace,
+  cache tại `~/.cache/huggingface`.
 
 ## Chạy frontend ở chế độ phát triển
 

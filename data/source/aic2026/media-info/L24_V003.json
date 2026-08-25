@@ -1,26 +1,55 @@
 {
-    "author": "HTV Sports",
-    "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
-    "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
-    "description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
-    "keywords": [
-        "HTVTheThao",
-        "HTVSports",
-        "htv the thao",
-        "HTV Thể thao",
-        "serie a",
-        "Serie A",
-        "Serie A 2022 - 2023",
-        "giải vô địch ý",
-        "cúp quốc gia ý",
-        "cup quoc gia italia",
-        "Cúp quốc gia Italia",
-        "ONE championship",
-        "one championship"
-    ],
-    "length": 763,
-    "publish_date": "12/01/2024",
-    "thumbnail_url": "https://i.ytimg.com/vi/bXMhsn050N4/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGDkgUyhyMA8=&rs=AOn4CLD0tOQfhV2b-HiVZsQkXD80n3Vq5Q",
-    "title": "Đoàn Nam Hoa - Lạc Long Quân diệt ngư tinh   Múa Rồng truyền thống  Cúp Chợ Lớn - HTV 2024",
-    "watch_url": "https://youtube.com/watch?v=bXMhsn050N4"
+  "author": "HTV Sports",
+  "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
+  "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
+  "description": "Video ghi lại tiết mục lân sư rồng Đoàn Nam Hoa - Lạc Long Quân diệt ngư tinh Múa Rồng truyền thống Cúp Chợ Lớn - HTV 2024.\n\nNội dung chính:\n- Chủ đề theo tiêu đề: Đoàn Nam Hoa - Lạc Long Quân diệt ngư tinh Múa Rồng truyền thống Cúp Chợ Lớn - HTV 2024.",
+  "keywords": [
+    "HTVTheThao",
+    "HTVSports",
+    "htv the thao",
+    "serie a",
+    "Serie A 2022 - 2023",
+    "giải vô địch ý",
+    "cúp quốc gia ý",
+    "cup quoc gia italia",
+    "ONE championship",
+    "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024",
+    "Đoàn Nam Hoa - Lạc Long Quân diệt ngư tinh Múa Rồng truyền thống Cúp Chợ Lớn - HTV 2024",
+    "video hấp",
+    "hấp dẫn"
+  ],
+  "length": 763,
+  "publish_date": "12/01/2024",
+  "thumbnail_url": "https://i.ytimg.com/vi/bXMhsn050N4/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGDkgUyhyMA8=&rs=AOn4CLD0tOQfhV2b-HiVZsQkXD80n3Vq5Q",
+  "title": "Đoàn Nam Hoa - Lạc Long Quân diệt ngư tinh   Múa Rồng truyền thống  Cúp Chợ Lớn - HTV 2024",
+  "watch_url": "https://youtube.com/watch?v=bXMhsn050N4",
+  "video_id": "L24_V003",
+  "source_description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
+  "topic": "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024: Đoàn Nam Hoa - Lạc Long Quân diệt ngư tinh Múa Rồng truyền thống Cúp Chợ Lớn - HTV 2024",
+  "key_points": [
+    "Chủ đề theo tiêu đề: Đoàn Nam Hoa - Lạc Long Quân diệt ngư tinh Múa Rồng truyền thống Cúp Chợ Lớn - HTV 2024."
+  ],
+  "subject_terms": [],
+  "asr": {
+    "status": "insufficient",
+    "quality": "low",
+    "language": "vi",
+    "duration_sec": 763.17025,
+    "word_count": 60,
+    "segment_count": 4,
+    "pipeline_version": "aicv3-asr-vi",
+    "transcript_sha256": "f3d56650d6cbd4130b058ebe86bf841a3771ea9123be2bb6a9b00c49101231dd",
+    "source_copy_count": 1,
+    "duplicate_content_ids": [],
+    "title_token_coverage": 0.0,
+    "possible_title_transcript_conflict": false,
+    "note": "ASR may contain recognition errors in names, numbers, and specialized terms."
+  },
+  "summary_provenance": {
+    "method": "deterministic-title-description-asr-extractive-v1",
+    "sources": [
+      "title",
+      "asr"
+    ]
+  }
 }

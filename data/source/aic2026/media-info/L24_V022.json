@@ -1,26 +1,58 @@
 {
-    "author": "HTV Sports",
-    "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
-    "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
-    "description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
-    "keywords": [
-        "HTVTheThao",
-        "HTVSports",
-        "htv the thao",
-        "HTV Thể thao",
-        "serie a",
-        "Serie A",
-        "Serie A 2022 - 2023",
-        "giải vô địch ý",
-        "cúp quốc gia ý",
-        "cup quoc gia italia",
-        "Cúp quốc gia Italia",
-        "ONE championship",
-        "one championship"
+  "author": "HTV Sports",
+  "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
+  "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
+  "description": "Video ghi lại tiết mục lân sư rồng Nam Sư Vượt Núi Hái Chuối Về Cho Hầu Tôn Hiền Dũng Đường - Bình Dương Cúp Chợ Lớn - HTV 2024.\n\nNội dung chính:\n- Chủ đề theo tiêu đề: Nam Sư Vượt Núi Hái Chuối Về Cho Hầu Tôn Hiền Dũng Đường - Bình Dương Cúp Chợ Lớn - HTV 2024.",
+  "keywords": [
+    "HTVTheThao",
+    "HTVSports",
+    "htv the thao",
+    "serie a",
+    "Serie A 2022 - 2023",
+    "giải vô địch ý",
+    "cúp quốc gia ý",
+    "cup quoc gia italia",
+    "ONE championship",
+    "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024",
+    "Nam Sư Vượt Núi Hái Chuối Về Cho Hầu Tôn Hiền Dũng Đường - Bình Dương Cúp Chợ Lớn - HTV 2024"
+  ],
+  "length": 591,
+  "publish_date": "16/01/2024",
+  "thumbnail_url": "https://i.ytimg.com/vi/uMgomPdFdMY/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGH8gUigjMA8=&rs=AOn4CLAFn-7G4uok0IFFeFZzXZfPzwxPCQ",
+  "title": "Nam Sư Vượt Núi Hái Chuối Về Cho Hầu Tôn  Hiền Dũng Đường - Bình Dương  Cúp Chợ Lớn - HTV 2024",
+  "watch_url": "https://youtube.com/watch?v=uMgomPdFdMY",
+  "video_id": "L24_V022",
+  "source_description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
+  "topic": "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024: Nam Sư Vượt Núi Hái Chuối Về Cho Hầu Tôn Hiền Dũng Đường - Bình Dương Cúp Chợ Lớn - HTV 2024",
+  "key_points": [
+    "Chủ đề theo tiêu đề: Nam Sư Vượt Núi Hái Chuối Về Cho Hầu Tôn Hiền Dũng Đường - Bình Dương Cúp Chợ Lớn - HTV 2024."
+  ],
+  "subject_terms": [],
+  "asr": {
+    "status": "insufficient",
+    "quality": "low",
+    "language": "vi",
+    "duration_sec": 590.646,
+    "word_count": 10,
+    "segment_count": 1,
+    "pipeline_version": "aicv3-asr-vi",
+    "transcript_sha256": "80a4d8d701338b78592b862c03e45e04cdd390604392db26a28f02f2e170ceda",
+    "source_copy_count": 1,
+    "duplicate_content_ids": [
+      "L24_V007",
+      "L24_V023",
+      "L24_V026",
+      "L24_V039"
     ],
-    "length": 591,
-    "publish_date": "16/01/2024",
-    "thumbnail_url": "https://i.ytimg.com/vi/uMgomPdFdMY/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGH8gUigjMA8=&rs=AOn4CLAFn-7G4uok0IFFeFZzXZfPzwxPCQ",
-    "title": "Nam Sư Vượt Núi Hái Chuối Về Cho Hầu Tôn  Hiền Dũng Đường - Bình Dương  Cúp Chợ Lớn - HTV 2024",
-    "watch_url": "https://youtube.com/watch?v=uMgomPdFdMY"
+    "title_token_coverage": 0.0,
+    "possible_title_transcript_conflict": false,
+    "note": "ASR may contain recognition errors in names, numbers, and specialized terms."
+  },
+  "summary_provenance": {
+    "method": "deterministic-title-description-asr-extractive-v1",
+    "sources": [
+      "title",
+      "asr"
+    ]
+  }
 }

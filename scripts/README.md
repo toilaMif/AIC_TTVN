@@ -9,7 +9,7 @@ Các script vận hành chính:
 | `stop-local.ps1` | Dừng FastAPI và Docker, không xóa dữ liệu |
 | `check-repository.ps1` | Kiểm tra build, cấu hình, file lớn và credential trước khi push |
 | `init-kaggle-batch.ps1` | Tạo cấu trúc thư mục cho một batch Kaggle |
-| `rebuild_kaggle_index.py` | Xóa và dựng lại visual/ASR index từ ZIP Kaggle |
+| `rebuild_kaggle_index.py` | Xóa và dựng lại visual, ASR, OCR và object index từ artifact Kaggle |
 | `repair_feature_records.py` | Sửa metadata feature khi import bị gián đoạn |
 
 `rebuild_kaggle_index.py` là lệnh destructive đối với dữ liệu derived trong

@@ -1,26 +1,52 @@
 {
-    "author": "HTV Sports",
-    "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
-    "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
-    "description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
-    "keywords": [
-        "HTVTheThao",
-        "HTVSports",
-        "htv the thao",
-        "HTV Thể thao",
-        "serie a",
-        "Serie A",
-        "Serie A 2022 - 2023",
-        "giải vô địch ý",
-        "cúp quốc gia ý",
-        "cup quoc gia italia",
-        "Cúp quốc gia Italia",
-        "ONE championship",
-        "one championship"
-    ],
-    "length": 520,
-    "publish_date": "15/01/2024",
-    "thumbnail_url": "https://i.ytimg.com/vi/bYbi_sE3o1M/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgWChJMA8=&rs=AOn4CLA6HefHMRcaEzqTKoLoApo80i02pg",
-    "title": "Nam Sư giúp Mai An Tiêm mang dưa hấu về dâng Vua Hùng  Đoàn Lân Lâm Vũ - Tây Ninh  Cúp Chợ Lớn HTV",
-    "watch_url": "https://youtube.com/watch?v=bYbi_sE3o1M"
+  "author": "HTV Sports",
+  "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
+  "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
+  "description": "Video ghi lại tiết mục lân sư rồng Nam Sư giúp Mai An Tiêm mang dưa hấu về dâng Vua Hùng Đoàn Lân Lâm Vũ - Tây Ninh Cúp Chợ Lớn HTV.\n\nNội dung chính:\n- Chủ đề theo tiêu đề: Nam Sư giúp Mai An Tiêm mang dưa hấu về dâng Vua Hùng Đoàn Lân Lâm Vũ - Tây Ninh Cúp Chợ Lớn HTV.",
+  "keywords": [
+    "HTVTheThao",
+    "HTVSports",
+    "htv the thao",
+    "serie a",
+    "Serie A 2022 - 2023",
+    "giải vô địch ý",
+    "cúp quốc gia ý",
+    "cup quoc gia italia",
+    "ONE championship",
+    "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024",
+    "Nam Sư giúp Mai An Tiêm mang dưa hấu về dâng Vua Hùng Đoàn Lân Lâm Vũ - Tây Ninh Cúp Chợ Lớn HTV"
+  ],
+  "length": 520,
+  "publish_date": "15/01/2024",
+  "thumbnail_url": "https://i.ytimg.com/vi/bYbi_sE3o1M/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgWChJMA8=&rs=AOn4CLA6HefHMRcaEzqTKoLoApo80i02pg",
+  "title": "Nam Sư giúp Mai An Tiêm mang dưa hấu về dâng Vua Hùng  Đoàn Lân Lâm Vũ - Tây Ninh  Cúp Chợ Lớn HTV",
+  "watch_url": "https://youtube.com/watch?v=bYbi_sE3o1M",
+  "video_id": "L24_V019",
+  "source_description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
+  "topic": "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024: Nam Sư giúp Mai An Tiêm mang dưa hấu về dâng Vua Hùng Đoàn Lân Lâm Vũ - Tây Ninh Cúp Chợ Lớn HTV",
+  "key_points": [
+    "Chủ đề theo tiêu đề: Nam Sư giúp Mai An Tiêm mang dưa hấu về dâng Vua Hùng Đoàn Lân Lâm Vũ - Tây Ninh Cúp Chợ Lớn HTV."
+  ],
+  "subject_terms": [],
+  "asr": {
+    "status": "no_speech",
+    "quality": "unavailable",
+    "language": null,
+    "duration_sec": null,
+    "word_count": 0,
+    "segment_count": 0,
+    "pipeline_version": null,
+    "transcript_sha256": null,
+    "source_copy_count": 0,
+    "duplicate_content_ids": [],
+    "title_token_coverage": null,
+    "possible_title_transcript_conflict": false,
+    "note": "No usable transcript was produced by the ASR stage."
+  },
+  "summary_provenance": {
+    "method": "deterministic-title-description-asr-extractive-v1",
+    "sources": [
+      "title"
+    ]
+  }
 }

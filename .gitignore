@@ -1,3 +1,6 @@
+# ===== Bài nộp thi (sinh ra tự động, không phải mã nguồn) =====
+/submission/
+
 # ===== Node.js / Frontend =====
 node_modules/
 dist/
