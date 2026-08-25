@@ -11,6 +11,7 @@ from minio import Minio
 
 from retrieval.config import settings
 from retrieval.indexes.milvus import stable_milvus_pk, upsert_visual_vectors
+from retrieval.provenance import dataset_group
 
 FRAME_BUCKET = "aic-frames"
 ARTIFACT_BUCKET = "aic-artifacts"
@@ -69,12 +70,15 @@ def _minio_client() -> Minio:
     )
 
 
-def import_self_extracted(root: Path, collection_name: str) -> dict[str, object]:
+def import_self_extracted(
+    root: Path, collection_name: str, artifact_batch: str | None = None
+) -> dict[str, object]:
     summary, shots, keyframes, vectors = validate_output(root)
     video_id = str(summary["video_id"])
+    group = dataset_group(video_id)
     version = str(summary["pipeline_version"])
     run_id = str(summary["run_id"])
-    embedding_version = f"{summary['embedding_model']}:{version}"
+    embedding_version = f"{summary['embedding_model']}:{version}:{video_id}"
     job_id = f"visual-{run_id}"
 
     minio = _minio_client()
@@ -108,16 +112,21 @@ def import_self_extracted(root: Path, collection_name: str) -> dict[str, object]
         if cur.fetchone() is None:
             raise ValueError(f"Video {video_id} is not present; run import-metadata first")
         cur.execute(
+            "UPDATE videos SET dataset_group=%s, artifact_batch=%s WHERE video_id=%s",
+            (group, artifact_batch, video_id),
+        )
+        cur.execute(
             """
             INSERT INTO ingest_runs
-              (run_id, run_type, status, video_count, keyframe_count, error_count, started_at)
-            VALUES (%s, 'self_extracted', 'running', 1, %s, 0, %s)
+              (run_id, run_type, status, video_count, keyframe_count, error_count, started_at,
+               dataset_group, artifact_batch)
+            VALUES (%s, 'self_extracted', 'running', 1, %s, 0, %s, %s, %s)
             ON CONFLICT (run_id) DO UPDATE SET status='running', error_count=0
             """,
-            (run_id, len(keyframes), now),
+            (run_id, len(keyframes), now, group, artifact_batch),
         )
-        cur.execute("DELETE FROM feature_records WHERE embedding_version=%s", (embedding_version,))
-        cur.execute("DELETE FROM feature_jobs WHERE embedding_version=%s", (embedding_version,))
+        cur.execute("DELETE FROM feature_records WHERE job_id=%s", (job_id,))
+        cur.execute("DELETE FROM feature_jobs WHERE job_id=%s", (job_id,))
         cur.execute(
             "DELETE FROM keyframes WHERE video_id=%s AND pipeline_version=%s", (video_id, version)
         )
@@ -147,7 +156,7 @@ def import_self_extracted(root: Path, collection_name: str) -> dict[str, object]
         with cur.copy(
             """COPY keyframes (keyframe_id, video_id, n, frame_idx, pts_time, fps, shot_id,
             window_id, frame_object_key, source, pipeline_version, run_id, quality_score,
-            quality_fallback) FROM STDIN"""
+            quality_fallback, dataset_group, artifact_batch) FROM STDIN"""
         ) as copy:
             for row in keyframes.itertuples(index=False):
                 copy.write_row(
@@ -166,12 +175,14 @@ def import_self_extracted(root: Path, collection_name: str) -> dict[str, object]
                         run_id,
                         float(row.quality_score),
                         bool(row.quality_fallback),
+                        group,
+                        artifact_batch,
                     )
                 )
         cur.execute(
             """INSERT INTO feature_jobs (job_id, model_name, model_version, embedding_version,
-            dimension, dtype, expected_count, completed_count, status)
-            VALUES (%s, %s, %s, %s, %s, 'float32', %s, %s, 'completed')""",
+            dimension, dtype, expected_count, completed_count, status, dataset_group, artifact_batch)
+            VALUES (%s, %s, %s, %s, %s, 'float32', %s, %s, 'completed', %s, %s)""",
             (
                 job_id,
                 str(summary["embedding_model"]),
@@ -179,6 +190,8 @@ def import_self_extracted(root: Path, collection_name: str) -> dict[str, object]
                 embedding_version,
                 int(vectors.shape[1]),
                 len(vectors),
+                group,
+                artifact_batch,
                 len(vectors),
             ),
         )

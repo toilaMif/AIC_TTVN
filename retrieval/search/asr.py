@@ -23,12 +23,12 @@ class AsrResult:
     frame_url: str | None
 
 
-def search_asr(query: str, top_k: int = 20) -> list[AsrResult]:
+def search_asr(query: str, top_k: int = 20, video_id: str | None = None) -> list[AsrResult]:
     query = query.strip()
     if not query:
         raise ValueError("query must not be empty")
-    if top_k < 1 or top_k > 100:
-        raise ValueError("top_k must be between 1 and 100")
+    if top_k < 1 or top_k > 200:
+        raise ValueError("top_k must be between 1 and 200")
     tokens = re.findall(r"[^\W_]+", query, flags=re.UNICODE)
     token_query = " | ".join(tokens)
     if not token_query:
@@ -36,16 +36,17 @@ def search_asr(query: str, top_k: int = 20) -> list[AsrResult]:
     connection_url = settings.database_url.replace("+psycopg", "")
     with psycopg.connect(connection_url) as conn, conn.cursor() as cur:
         cur.execute(
-            """
+            f"""
             SELECT segment_id, video_id, start_time, end_time, text,
                    ts_rank_cd(to_tsvector('simple', text), to_tsquery('simple', %s)) AS score
             FROM asr_segments
-            WHERE to_tsvector('simple', text) @@ to_tsquery('simple', %s)
-               OR text ILIKE %s
+            WHERE (to_tsvector('simple', text) @@ to_tsquery('simple', %s)
+               OR text ILIKE %s)
+               {"AND video_id = %s" if video_id else ""}
             ORDER BY score DESC, start_time
             LIMIT %s
             """,
-            (token_query, token_query, f"%{query}%", top_k),
+            (token_query, token_query, f"%{query}%", *([video_id] if video_id else []), top_k),
         )
         segments = cur.fetchall()
         if not segments:

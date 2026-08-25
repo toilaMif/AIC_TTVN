@@ -10,6 +10,7 @@ import psycopg
 
 from retrieval.config import settings
 from retrieval.domain import keyframe_id
+from retrieval.provenance import dataset_group
 
 
 def import_metadata(manifest_path: Path) -> tuple[int, int, str]:
@@ -28,18 +29,21 @@ def import_metadata(manifest_path: Path) -> tuple[int, int, str]:
             (run_id, len(manifests), datetime.now(UTC)),
         )
         for item in manifests:
+            group = dataset_group(str(item["video_id"]))
             metadata_path = Path(item["media_info_path"])
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
             cur.execute(
                 """
                     INSERT INTO videos (video_id, youtube_id, watch_url, title, description,
-                                        duration_expected_sec, availability_status, source_metadata, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, 'unchecked', %s::jsonb, %s)
+                                        duration_expected_sec, availability_status, source_metadata,
+                                        dataset_group, created_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, 'unchecked', %s::jsonb, %s, %s)
                     ON CONFLICT (video_id) DO UPDATE SET
                       youtube_id=EXCLUDED.youtube_id, watch_url=EXCLUDED.watch_url,
                       title=EXCLUDED.title, description=EXCLUDED.description,
                       duration_expected_sec=EXCLUDED.duration_expected_sec,
-                      source_metadata=EXCLUDED.source_metadata
+                      source_metadata=EXCLUDED.source_metadata,
+                      dataset_group=EXCLUDED.dataset_group
                     """,
                 (
                     item["video_id"],
@@ -49,6 +53,7 @@ def import_metadata(manifest_path: Path) -> tuple[int, int, str]:
                     metadata.get("description"),
                     metadata.get("length"),
                     json.dumps(metadata, ensure_ascii=False),
+                    group,
                     datetime.now(UTC),
                 ),
             )
@@ -56,9 +61,9 @@ def import_metadata(manifest_path: Path) -> tuple[int, int, str]:
             with Path(item["mapping_path"]).open(encoding="utf-8", newline="") as handle:
                 rows = list(csv.DictReader(handle))
             keyframe_count += len(rows)
-            cur.execute("DELETE FROM keyframes WHERE video_id=%s", (item["video_id"],))
+            cur.execute("DELETE FROM keyframes WHERE video_id=%s AND source='btc'", (item["video_id"],))
             with cur.copy(
-                "COPY keyframes (keyframe_id, video_id, n, frame_idx, pts_time, fps) FROM STDIN"
+                "COPY keyframes (keyframe_id, video_id, n, frame_idx, pts_time, fps, source, pipeline_version, dataset_group) FROM STDIN"
             ) as copy:
                 for row in rows:
                     copy.write_row(
@@ -69,6 +74,9 @@ def import_metadata(manifest_path: Path) -> tuple[int, int, str]:
                             int(row["frame_idx"]),
                             float(row["pts_time"]),
                             float(row["fps"]),
+                            "btc",
+                            "btc",
+                            group,
                         )
                     )
         cur.execute(

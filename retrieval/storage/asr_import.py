@@ -7,9 +7,14 @@ import pandas as pd
 import psycopg
 
 from retrieval.config import settings
+from retrieval.provenance import dataset_group
 
 
-def import_asr(root: Path, model_name: str = "faster-whisper/large-v3") -> dict[str, int | str]:
+def import_asr(
+    root: Path,
+    model_name: str = "faster-whisper/large-v3",
+    artifact_batch: str | None = None,
+) -> dict[str, int | str]:
     path = root / "asr-segments.parquet"
     if not path.is_file():
         raise ValueError(f"Missing ASR artifact: {path}")
@@ -38,8 +43,9 @@ def import_asr(root: Path, model_name: str = "faster-whisper/large-v3") -> dict[
                 """
                 INSERT INTO asr_segments
                 (segment_id, video_id, segment_index, start_time, end_time, text,
-                 language, avg_logprob, no_speech_prob, words_json, model_name)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                 language, avg_logprob, no_speech_prob, words_json, model_name,
+                 dataset_group, artifact_batch)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """,
                 (
                     str(row.segment_id), str(row.video_id), int(row.segment_index),
@@ -47,6 +53,7 @@ def import_asr(root: Path, model_name: str = "faster-whisper/large-v3") -> dict[
                     str(getattr(row, "language", "vi")),
                     getattr(row, "avg_logprob", None), getattr(row, "no_speech_prob", None),
                     words, model_name,
+                    dataset_group(str(row.video_id)), artifact_batch,
                 ),
             )
     return {"videos": len(videos), "segments": len(frame), "model": model_name}

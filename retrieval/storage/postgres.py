@@ -32,6 +32,8 @@ class Video(Base):
     duration_expected_sec: Mapped[float | None] = mapped_column(Float)
     availability_status: Mapped[str] = mapped_column(String(32), default="unchecked")
     source_metadata: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    dataset_group: Mapped[str | None] = mapped_column(String(32), index=True)
+    artifact_batch: Mapped[str | None] = mapped_column(String(64), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now)
 
 
@@ -53,6 +55,8 @@ class Keyframe(Base):
     run_id: Mapped[str | None] = mapped_column(ForeignKey("ingest_runs.run_id"))
     quality_score: Mapped[float | None] = mapped_column(Float)
     quality_fallback: Mapped[bool | None] = mapped_column(Boolean)
+    dataset_group: Mapped[str | None] = mapped_column(String(32), index=True)
+    artifact_batch: Mapped[str | None] = mapped_column(String(64), index=True)
 
 
 class Shot(Base):
@@ -82,6 +86,8 @@ class IngestRun(Base):
     error_count: Mapped[int] = mapped_column(Integer, default=0)
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.now)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    dataset_group: Mapped[str | None] = mapped_column(String(32))
+    artifact_batch: Mapped[str | None] = mapped_column(String(64))
 
 
 class FeatureJob(Base):
@@ -96,6 +102,72 @@ class FeatureJob(Base):
     expected_count: Mapped[int] = mapped_column(Integer)
     completed_count: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(32), default="pending")
+    dataset_group: Mapped[str | None] = mapped_column(String(32))
+    artifact_batch: Mapped[str | None] = mapped_column(String(64))
+
+
+class AsrSegment(Base):
+    __tablename__ = "asr_segments"
+
+    segment_id: Mapped[str] = mapped_column(String(96), primary_key=True)
+    video_id: Mapped[str] = mapped_column(ForeignKey("videos.video_id"), index=True)
+    segment_index: Mapped[int] = mapped_column(Integer)
+    start_time: Mapped[float] = mapped_column(Float)
+    end_time: Mapped[float] = mapped_column(Float)
+    text: Mapped[str] = mapped_column(Text)
+    language: Mapped[str] = mapped_column(String(16), default="vi")
+    avg_logprob: Mapped[float | None] = mapped_column(Float)
+    no_speech_prob: Mapped[float | None] = mapped_column(Float)
+    words_json: Mapped[str | None] = mapped_column(Text)
+    model_name: Mapped[str] = mapped_column(String(128))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    dataset_group: Mapped[str | None] = mapped_column(String(32), index=True)
+    artifact_batch: Mapped[str | None] = mapped_column(String(64))
+
+
+class OcrRecord(Base):
+    __tablename__ = "ocr_records"
+
+    keyframe_id: Mapped[str] = mapped_column(ForeignKey("keyframes.keyframe_id"), primary_key=True)
+    video_id: Mapped[str] = mapped_column(ForeignKey("videos.video_id"), index=True)
+    frame_idx: Mapped[int] = mapped_column(BigInteger)
+    pts_time: Mapped[float] = mapped_column(Float)
+    shot_id: Mapped[str | None] = mapped_column(String(64))
+    text: Mapped[str] = mapped_column(Text)
+    raw_text: Mapped[str | None] = mapped_column(Text)
+    normalized_text: Mapped[str | None] = mapped_column(Text)
+    search_text: Mapped[str | None] = mapped_column(Text)
+    shot_text: Mapped[str | None] = mapped_column(Text)
+    shot_search_text: Mapped[str | None] = mapped_column(Text)
+    ocr_error: Mapped[str | None] = mapped_column(Text)
+    pipeline_version: Mapped[str] = mapped_column(String(64))
+    detections_json: Mapped[str | None] = mapped_column(Text)
+    merged_detections_json: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    dataset_group: Mapped[str | None] = mapped_column(String(32), index=True)
+    artifact_batch: Mapped[str | None] = mapped_column(String(64))
+
+
+class ObjectDetection(Base):
+    __tablename__ = "object_detections"
+
+    detection_id: Mapped[str] = mapped_column(String(160), primary_key=True)
+    keyframe_id: Mapped[str] = mapped_column(ForeignKey("keyframes.keyframe_id"), index=True)
+    video_id: Mapped[str] = mapped_column(ForeignKey("videos.video_id"), index=True)
+    frame_idx: Mapped[int] = mapped_column(BigInteger)
+    pts_time: Mapped[float] = mapped_column(Float)
+    model: Mapped[str] = mapped_column(String(128))
+    class_id: Mapped[int] = mapped_column(Integer)
+    class_name: Mapped[str] = mapped_column(String(128), index=True)
+    confidence: Mapped[float] = mapped_column(Float)
+    x1_norm: Mapped[float] = mapped_column(Float)
+    y1_norm: Mapped[float] = mapped_column(Float)
+    x2_norm: Mapped[float] = mapped_column(Float)
+    y2_norm: Mapped[float] = mapped_column(Float)
+    bbox_area_ratio: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    dataset_group: Mapped[str | None] = mapped_column(String(32), index=True)
+    artifact_batch: Mapped[str | None] = mapped_column(String(64))
 
 
 class FeatureRecord(Base):

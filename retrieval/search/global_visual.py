@@ -43,13 +43,50 @@ def _load_model():
     return model, tokenizer, preprocess, device
 
 
+_TRANSLATOR_MODEL_NAME = "vinai/vinai-translate-vi2en-v2"
+
+
+@lru_cache(maxsize=1)
+def _load_translator():
+    import torch
+    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    tokenizer = AutoTokenizer.from_pretrained(_TRANSLATOR_MODEL_NAME, src_lang="vi_VN")
+    model = AutoModelForSeq2SeqLM.from_pretrained(_TRANSLATOR_MODEL_NAME).to(device)
+    model.eval()
+    return model, tokenizer, device
+
+
+def translate_vi_to_en(text: str) -> str:
+    """Translate a Vietnamese query to English so OpenCLIP's (English-centric)
+    text tower can embed it meaningfully."""
+    text = text.strip()
+    if not text:
+        return text
+    import torch
+
+    model, tokenizer, device = _load_translator()
+    inputs = tokenizer(text, padding=True, return_tensors="pt").to(device)
+    with torch.inference_mode():
+        output_ids = model.generate(
+            **inputs,
+            decoder_start_token_id=tokenizer.lang_code_to_id["en_XX"],
+            num_return_sequences=1,
+            num_beams=5,
+            early_stopping=True,
+        )
+    return tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
+
+
 def encode_text(query: str) -> list[float]:
     if not query.strip():
         raise ValueError("query must not be empty")
     import torch
 
+    translated = translate_vi_to_en(query)
     model, tokenizer, _, device = _load_model()
-    tokens = tokenizer([query]).to(device)
+    tokens = tokenizer([translated]).to(device)
     with torch.inference_mode():
         vector = model.encode_text(tokens)
         vector = torch.nn.functional.normalize(vector.float(), dim=-1)
@@ -72,8 +109,13 @@ def _frame_urls(keyframe_ids: list[str]) -> dict[str, str]:
             (keyframe_ids,),
         )
         rows = cur.fetchall()
+    public_endpoint = settings.minio_public_endpoint
     return {
-        keyframe_id: minio.presigned_get_object("aic-frames", object_key)
+        keyframe_id: (
+            minio.presigned_get_object("aic-frames", object_key)
+            if not public_endpoint
+            else f"{public_endpoint.rstrip('/')}/aic-frames/{object_key}"
+        )
         for keyframe_id, object_key in rows
         if object_key
     }
@@ -83,6 +125,7 @@ def search_text(
     query: str,
     top_k: int = 20,
     collection_name: str = SELF_AICV3_COLLECTION,
+    video_id: str | None = None,
 ) -> list[SearchResult]:
     if top_k < 1 or top_k > 1000:
         raise ValueError("top_k must be between 1 and 1000")
@@ -97,6 +140,7 @@ def search_text(
         limit=top_k,
         output_fields=["keyframe_id", "video_id", "frame_idx"],
         search_params={"metric_type": "IP", "params": {}},
+        filter=f'video_id == "{video_id.replace(chr(34), "")}"' if video_id else "",
     )[0]
     ids = [str(item["entity"]["keyframe_id"]) for item in raw]
     timestamps: dict[str, tuple[float | None, str | None]] = {}
@@ -177,10 +221,11 @@ def search_text_diversified(
     max_results_per_shot: int = 1,
     min_temporal_gap_seconds: float = 3.0,
     collection_name: str = SELF_AICV3_COLLECTION,
+    video_id: str | None = None,
 ) -> list[SearchResult]:
     if candidate_k < top_k:
         raise ValueError("candidate_k must be >= top_k")
-    raw = search_text(query, top_k=candidate_k, collection_name=collection_name)
+    raw = search_text(query, top_k=candidate_k, collection_name=collection_name, video_id=video_id)
     return diversify_results(
         raw,
         top_k=top_k,
@@ -212,7 +257,7 @@ def localized_search(
     if not candidates:
         return []
     model, tokenizer, preprocess, device = _load_model()
-    texts = [global_query, *[clause.text for clause in clauses]]
+    texts = [translate_vi_to_en(global_query), *[translate_vi_to_en(clause.text) for clause in clauses]]
     with torch.inference_mode():
         text_features = model.encode_text(tokenizer(texts).to(device))
         text_features = torch.nn.functional.normalize(text_features.float(), dim=-1)
