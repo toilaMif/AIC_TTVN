@@ -1,26 +1,62 @@
 {
-    "author": "HTV Sports",
-    "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
-    "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
-    "description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
-    "keywords": [
-        "HTVTheThao",
-        "HTVSports",
-        "htv the thao",
-        "HTV Thể thao",
-        "serie a",
-        "Serie A",
-        "Serie A 2022 - 2023",
-        "giải vô địch ý",
-        "cúp quốc gia ý",
-        "cup quoc gia italia",
-        "Cúp quốc gia Italia",
-        "ONE championship",
-        "one championship"
+  "author": "HTV Sports",
+  "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
+  "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
+  "description": "Video ghi lại tiết mục lân sư rồng Té ngã thì mình đứng lên mình chơi tiếp...#htvsports #htv #htvthethao #lansurong #cupcholonhtv2024.\n\nNội dung chính:\n- Chủ đề theo tiêu đề: Té ngã thì mình đứng lên mình chơi tiếp...#htvsports #htv #htvthethao #lansurong #cupcholonhtv2024.",
+  "keywords": [
+    "HTVTheThao",
+    "HTVSports",
+    "htv the thao",
+    "serie a",
+    "Serie A 2022 - 2023",
+    "giải vô địch ý",
+    "cúp quốc gia ý",
+    "cup quoc gia italia",
+    "ONE championship",
+    "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024",
+    "Té ngã thì mình đứng lên mình chơi tiếp...#htvsports #htv #htvthethao #lansurong #cupcholonhtv2024"
+  ],
+  "length": 35,
+  "publish_date": "30/01/2024",
+  "thumbnail_url": "https://i.ytimg.com/vi/0iJStT_4v8I/sd2.jpg?sqp=-oaymwEoCIAFEOAD8quKqQMcGADwAQH4AbYIgAKAD4oCDAgAEAEYciBkKBQwDw==&rs=AOn4CLBnLPY00OtB6p9yovWKzXPp5yh-7A",
+  "title": "Té ngã thì mình đứng lên mình chơi tiếp...#htvsports #htv #htvthethao #lansurong #cupcholonhtv2024",
+  "watch_url": "https://youtube.com/watch?v=0iJStT_4v8I",
+  "video_id": "L24_V044",
+  "source_description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
+  "topic": "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024: Té ngã thì mình đứng lên mình chơi tiếp...#htvsports #htv #htvthethao #lansurong #cupcholonhtv2024",
+  "key_points": [
+    "Chủ đề theo tiêu đề: Té ngã thì mình đứng lên mình chơi tiếp...#htvsports #htv #htvthethao #lansurong #cupcholonhtv2024."
+  ],
+  "subject_terms": [],
+  "asr": {
+    "status": "insufficient",
+    "quality": "low",
+    "language": "vi",
+    "duration_sec": 35.3408125,
+    "word_count": 15,
+    "segment_count": 1,
+    "pipeline_version": "aicv3-asr-vi",
+    "transcript_sha256": "55edd47fe3f0035b0ff0e8e977d860902ed92b36fb09da04ed532be81f5713a1",
+    "source_copy_count": 1,
+    "duplicate_content_ids": [
+      "L24_V005",
+      "L24_V006",
+      "L24_V009",
+      "L24_V011",
+      "L24_V014",
+      "L24_V020",
+      "L24_V030",
+      "L24_V035"
     ],
-    "length": 35,
-    "publish_date": "30/01/2024",
-    "thumbnail_url": "https://i.ytimg.com/vi/0iJStT_4v8I/sd2.jpg?sqp=-oaymwEoCIAFEOAD8quKqQMcGADwAQH4AbYIgAKAD4oCDAgAEAEYciBkKBQwDw==&rs=AOn4CLBnLPY00OtB6p9yovWKzXPp5yh-7A",
-    "title": "Té ngã thì mình đứng lên mình chơi tiếp...#htvsports #htv #htvthethao #lansurong #cupcholonhtv2024",
-    "watch_url": "https://youtube.com/watch?v=0iJStT_4v8I"
+    "title_token_coverage": 0.0,
+    "possible_title_transcript_conflict": false,
+    "note": "ASR may contain recognition errors in names, numbers, and specialized terms."
+  },
+  "summary_provenance": {
+    "method": "deterministic-title-description-asr-extractive-v1",
+    "sources": [
+      "title",
+      "asr"
+    ]
+  }
 }

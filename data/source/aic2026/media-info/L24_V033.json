@@ -1,26 +1,53 @@
 {
-    "author": "HTV Sports",
-    "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
-    "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
-    "description": "Màn trình diễn của Đoàn Hải Nam Tinh Võ - Quận 8 đã đem về 8.38 điểm và hạng 10 chung cuộc tại Cúp Chợ Lớn - HTV 2024 \n—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
-    "keywords": [
-        "HTVTheThao",
-        "HTVSports",
-        "htv the thao",
-        "HTV Thể thao",
-        "serie a",
-        "Serie A",
-        "Serie A 2022 - 2023",
-        "giải vô địch ý",
-        "cúp quốc gia ý",
-        "cup quoc gia italia",
-        "Cúp quốc gia Italia",
-        "ONE championship",
-        "one championship"
-    ],
-    "length": 587,
-    "publish_date": "16/01/2024",
-    "thumbnail_url": "https://i.ytimg.com/vi/bLlFbUC5K1I/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGH8gTigjMA8=&rs=AOn4CLCIk7c3q8-IJYi2tW21uBCv3cJRdg",
-    "title": "Nam Sư Vượt Long Thiên Môn Đoạt Long Châu Dâng Long Thiên  Đoàn Lân Hải Nam Tinh Võ - Quận 8, TPHCM",
-    "watch_url": "https://youtube.com/watch?v=bLlFbUC5K1I"
+  "author": "HTV Sports",
+  "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
+  "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
+  "description": "Video ghi lại tiết mục lân sư rồng Nam Sư Vượt Long Thiên Môn Đoạt Long Châu Dâng Long Thiên Đoàn Lân Hải Nam Tinh Võ - Quận 8, TPHCM.\n\nNội dung chính:\n- Màn trình diễn của Đoàn Hải Nam Tinh Võ - Quận 8 đã đem về 8.38 điểm và hạng 10 chung cuộc tại Cúp Chợ Lớn - HTV 2024.",
+  "keywords": [
+    "HTVTheThao",
+    "HTVSports",
+    "htv the thao",
+    "serie a",
+    "Serie A 2022 - 2023",
+    "giải vô địch ý",
+    "cúp quốc gia ý",
+    "cup quoc gia italia",
+    "ONE championship",
+    "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024",
+    "Nam Sư Vượt Long Thiên Môn Đoạt Long Châu Dâng Long Thiên Đoàn Lân Hải Nam Tinh Võ - Quận 8, TPHCM"
+  ],
+  "length": 587,
+  "publish_date": "16/01/2024",
+  "thumbnail_url": "https://i.ytimg.com/vi/bLlFbUC5K1I/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGH8gTigjMA8=&rs=AOn4CLCIk7c3q8-IJYi2tW21uBCv3cJRdg",
+  "title": "Nam Sư Vượt Long Thiên Môn Đoạt Long Châu Dâng Long Thiên  Đoàn Lân Hải Nam Tinh Võ - Quận 8, TPHCM",
+  "watch_url": "https://youtube.com/watch?v=bLlFbUC5K1I",
+  "video_id": "L24_V033",
+  "source_description": "Màn trình diễn của Đoàn Hải Nam Tinh Võ - Quận 8 đã đem về 8.38 điểm và hạng 10 chung cuộc tại Cúp Chợ Lớn - HTV 2024 \n—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
+  "topic": "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024: Nam Sư Vượt Long Thiên Môn Đoạt Long Châu Dâng Long Thiên Đoàn Lân Hải Nam Tinh Võ - Quận 8, TPHCM",
+  "key_points": [
+    "Màn trình diễn của Đoàn Hải Nam Tinh Võ - Quận 8 đã đem về 8.38 điểm và hạng 10 chung cuộc tại Cúp Chợ Lớn - HTV 2024."
+  ],
+  "subject_terms": [],
+  "asr": {
+    "status": "no_speech",
+    "quality": "unavailable",
+    "language": null,
+    "duration_sec": null,
+    "word_count": 0,
+    "segment_count": 0,
+    "pipeline_version": null,
+    "transcript_sha256": null,
+    "source_copy_count": 0,
+    "duplicate_content_ids": [],
+    "title_token_coverage": null,
+    "possible_title_transcript_conflict": false,
+    "note": "No usable transcript was produced by the ASR stage."
+  },
+  "summary_provenance": {
+    "method": "deterministic-title-description-asr-extractive-v1",
+    "sources": [
+      "title",
+      "source_description"
+    ]
+  }
 }

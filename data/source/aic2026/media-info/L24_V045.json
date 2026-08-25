@@ -1,26 +1,56 @@
 {
-    "author": "HTV Sports",
-    "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
-    "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
-    "description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
-    "keywords": [
-        "HTVTheThao",
-        "HTVSports",
-        "htv the thao",
-        "HTV Thể thao",
-        "serie a",
-        "Serie A",
-        "Serie A 2022 - 2023",
-        "giải vô địch ý",
-        "cúp quốc gia ý",
-        "cup quoc gia italia",
-        "Cúp quốc gia Italia",
-        "ONE championship",
-        "one championship"
+  "author": "HTV Sports",
+  "channel_id": "UC_OBG47Y3PswSHnMWSlrgZA",
+  "channel_url": "https://www.youtube.com/channel/UC_OBG47Y3PswSHnMWSlrgZA",
+  "description": "Video ghi lại tiết mục lân sư rồng lá la la la là la la lá la la la la.... #htvsports #lansurong #tetgiapthin.\n\nNội dung chính:\n- Chủ đề theo tiêu đề: Lá la la la là la la lá la la la la.... #htvsports #lansurong #tetgiapthin.",
+  "keywords": [
+    "HTVTheThao",
+    "HTVSports",
+    "htv the thao",
+    "serie a",
+    "Serie A 2022 - 2023",
+    "giải vô địch ý",
+    "cúp quốc gia ý",
+    "cup quoc gia italia",
+    "ONE championship",
+    "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024",
+    "lá la la la là la la lá la la la la.... #htvsports #lansurong #tetgiapthin"
+  ],
+  "length": 33,
+  "publish_date": "01/02/2024",
+  "thumbnail_url": "https://i.ytimg.com/vi/BrzF4ZSpR8Y/sd2.jpg?sqp=-oaymwEoCIAFEOAD8quKqQMcGADwAQH4AbYIgAKAD4oCDAgAEAEYciBhKBcwDw==&rs=AOn4CLD84fmbYHNvYUy2QDv3MpDYvqD6yw",
+  "title": "lá la la la là la la lá la la la la.... #htvsports #lansurong #tetgiapthin",
+  "watch_url": "https://youtube.com/watch?v=BrzF4ZSpR8Y",
+  "video_id": "L24_V045",
+  "source_description": "—————\nTheo dõi thông tin tại: \n📱Fanpage HTV Thể thao: https://bit.ly/2X5Ye2s \n📱Youtube HTV Sports: https://bit.ly/2KrisC6 \n📱Tiktok HTV Thể thao https://www.tiktok.com/@htvofficial\n\n#HTVThethao #HTVSports",
+  "topic": "Thể thao biểu diễn - Lân sư rồng Cúp Chợ Lớn 2024: lá la la la là la la lá la la la la.... #htvsports #lansurong #tetgiapthin",
+  "key_points": [
+    "Chủ đề theo tiêu đề: Lá la la la là la la lá la la la la.... #htvsports #lansurong #tetgiapthin."
+  ],
+  "subject_terms": [],
+  "asr": {
+    "status": "insufficient",
+    "quality": "low",
+    "language": "vi",
+    "duration_sec": 32.554375,
+    "word_count": 15,
+    "segment_count": 1,
+    "pipeline_version": "aicv3-asr-vi",
+    "transcript_sha256": "874f85961c8d765137163bb458dd5b56d975422b50766c956e94a925cbb1188d",
+    "source_copy_count": 1,
+    "duplicate_content_ids": [
+      "L24_V036",
+      "L24_V041"
     ],
-    "length": 33,
-    "publish_date": "01/02/2024",
-    "thumbnail_url": "https://i.ytimg.com/vi/BrzF4ZSpR8Y/sd2.jpg?sqp=-oaymwEoCIAFEOAD8quKqQMcGADwAQH4AbYIgAKAD4oCDAgAEAEYciBhKBcwDw==&rs=AOn4CLD84fmbYHNvYUy2QDv3MpDYvqD6yw",
-    "title": "lá la la la là la la lá la la la la.... #htvsports #lansurong #tetgiapthin",
-    "watch_url": "https://youtube.com/watch?v=BrzF4ZSpR8Y"
+    "title_token_coverage": 0.0,
+    "possible_title_transcript_conflict": false,
+    "note": "ASR may contain recognition errors in names, numbers, and specialized terms."
+  },
+  "summary_provenance": {
+    "method": "deterministic-title-description-asr-extractive-v1",
+    "sources": [
+      "title",
+      "asr"
+    ]
+  }
 }
