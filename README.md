@@ -190,20 +190,25 @@ AIC_KAGGLE_BATCH=l21
 Kiểm tra đúng batch trong `.env`, sau đó chạy:
 
 ```powershell
-uv run python scripts/rebuild_kaggle_index.py --confirm-rebuild
+uv run python scripts/rebuild_kaggle_index.py --confirm-rebuild l21
 ```
 
-Nếu thư mục batch có tên khác cấu hình `.env`, có thể truyền trực tiếp:
+Nếu thư mục batch có tên khác cấu hình `.env`, có thể truyền trực tiếp (giá trị
+`--confirm-rebuild` phải khớp đúng tên thư mục batch, ví dụ `l21a`):
 
 ```powershell
 uv run python scripts/rebuild_kaggle_index.py `
   --output-root D:/AIC_TTVN_DATA/artifacts/kaggle/l21a `
-  --confirm-rebuild
+  --confirm-rebuild l21a
 ```
 
 > Cảnh báo: lệnh này xóa và dựng lại dữ liệu đặc trưng hiện tại trong
-> PostgreSQL, MinIO và Milvus. Không chạy chỉ để mở UI. Với máy đã có index,
-> hãy sao lưu trước khi rebuild.
+> PostgreSQL, MinIO và Milvus, không có cách khôi phục tự động. Không chạy chỉ
+> để mở UI. `--confirm-rebuild` giờ bắt buộc gõ đúng tên batch (không phải cờ
+> bật/tắt) để tránh xóa nhầm khi copy-paste lệnh cũ; trước khi xóa, script tự
+> ghi lại số lượng bản ghi hiện có vào `data/manifests/rebuild-pre-clear-*.json`
+> để tra cứu sau này (đây chỉ là bản ghi số liệu, không phải bản sao lưu có thể
+> phục hồi dữ liệu).
 
 Lần truy vấn visual đầu tiên có thể chậm do OpenCLIP tải model về máy. Các lần
 sau model được dùng từ cache local.
