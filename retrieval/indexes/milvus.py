@@ -4,6 +4,7 @@ from pymilvus import DataType, MilvusClient
 
 DEFAULT_COLLECTION = "keyframe_visual_vit_b32_v1"
 SELF_AICV3_COLLECTION = "keyframe_visual_openclip_vit_b32_aicv3"
+CAPTION_TEXT_COLLECTION = "frame_caption_text_viembed_v1"
 
 
 def stable_milvus_pk(keyframe_id: str) -> int:

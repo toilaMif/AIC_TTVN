@@ -3,13 +3,13 @@ track per-question progress ("done") for the competition day, and record the
 chosen answer frame(s)/text — writing each question's submission CSV to disk
 in the exact format required by the organizers (see data/thể lệ)."""
 
-import csv
+import math
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
-from zipfile import ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile
 
 import psycopg
 from psycopg.types.json import Json
@@ -19,6 +19,7 @@ from retrieval.config import settings
 _FILENAME_RE = re.compile(r"^query-(p\d+)-(\d+)-(kis|qa|trake)\.txt$", re.IGNORECASE)
 _EVENT_RE = re.compile(r"^(E\d+)\s+(.*)$")
 _SUBMISSION_ROOT = Path(__file__).resolve().parents[2] / "submission"
+_SUBMISSION_ZIP_FILENAME = "team_TTVN_round1.zip"
 
 
 @dataclass(frozen=True)
@@ -215,28 +216,183 @@ def select_question(question_id: str, username: str) -> dict | None:
 _MAX_GUESSES = 100  # organizers cap each submission CSV at 100 rows
 
 
+def _submission_filename(question: dict) -> str:
+    return f"query-{question['part']}-{question['number']}-{question['qtype']}.csv"
+
+
+def _validate_frame(frame: dict, position: int) -> list[str]:
+    errors: list[str] = []
+    video_id = str(frame.get("video_id") or "").strip()
+    frame_idx = frame.get("frame_idx")
+    if not video_id:
+        errors.append(f"Frame {position}: thiếu video_id.")
+    elif video_id.lower().endswith(".mp4"):
+        errors.append(f"Frame {position}: video_id không được chứa đuôi .mp4.")
+    if isinstance(frame_idx, bool) or not isinstance(frame_idx, int) or frame_idx < 0:
+        errors.append(f"Frame {position}: frame_idx phải là số nguyên không âm.")
+    return errors
+
+
+def _review_question(question: dict) -> dict:
+    frames = list(question.get("answer_frames") or [])
+    events = list(question.get("events") or [])
+    qtype = str(question.get("qtype") or "").lower()
+    missing: list[str] = []
+    errors: list[str] = []
+    part = str(question.get("part") or "").lower()
+    number = question.get("number")
+    if not re.fullmatch(r"p\d+", part):
+        errors.append("Mã phần thi không hợp lệ (cần có dạng p1, p2, ...).")
+    if isinstance(number, bool) or not isinstance(number, int) or number < 1:
+        errors.append("Số thứ tự câu hỏi không hợp lệ.")
+    if qtype not in {"kis", "qa", "trake"}:
+        errors.append(f"Loại câu hỏi không được hỗ trợ: {qtype or '(trống)' }.")
+    for position, frame in enumerate(frames, start=1):
+        if not isinstance(frame, dict):
+            errors.append(f"Frame {position}: dữ liệu không hợp lệ.")
+        else:
+            errors.extend(_validate_frame(frame, position))
+
+    if qtype in {"kis", "qa"}:
+        if not frames:
+            missing.append("Chưa chọn frame đáp án.")
+        if len(frames) > _MAX_GUESSES:
+            errors.append(f"Vượt quá giới hạn {_MAX_GUESSES} dòng đáp án.")
+
+    answer_text = str(question.get("answer_text") or "").strip()
+    if qtype == "qa":
+        if not answer_text:
+            missing.append("Chưa nhập nội dung trả lời QA.")
+        elif len(answer_text) > 100:
+            errors.append("Nội dung trả lời QA vượt quá 100 ký tự.")
+
+    if qtype == "trake":
+        if not events:
+            errors.append("Câu TRAKE không có danh sách sự kiện.")
+        if not frames:
+            missing.append(f"Chưa chọn frame cho {len(events)} sự kiện.")
+        elif len(frames) < len(events):
+            missing.append(f"Thiếu {len(events) - len(frames)} frame cho chuỗi sự kiện.")
+        elif len(frames) > len(events):
+            errors.append(f"Thừa {len(frames) - len(events)} frame so với số sự kiện.")
+        video_ids = {str(frame.get("video_id") or "").strip() for frame in frames if isinstance(frame, dict)}
+        if len(video_ids) > 1:
+            errors.append("Tất cả frame của câu TRAKE phải thuộc cùng một video.")
+        pts_times: list[float] = []
+        for position, frame in enumerate(frames, start=1):
+            pts_time = frame.get("pts_time") if isinstance(frame, dict) else None
+            if isinstance(pts_time, bool) or not isinstance(pts_time, (int, float)) or not math.isfinite(pts_time):
+                errors.append(f"Frame {position}: thiếu thời gian hợp lệ để kiểm tra thứ tự sự kiện.")
+                pts_times = []
+                break
+            pts_times.append(float(pts_time))
+        if pts_times and any(current < previous for previous, current in zip(pts_times, pts_times[1:])):
+            errors.append("Các frame TRAKE chưa theo đúng thứ tự thời gian của sự kiện.")
+
+    messages = [*missing, *errors]
+    status = "invalid" if errors else "missing" if missing else "ready"
+    row_count = len(frames) if qtype in {"kis", "qa"} else (1 if status == "ready" else 0)
+    return {
+        "question_id": question.get("question_id"),
+        "part": part,
+        "number": number,
+        "qtype": qtype,
+        "text": question.get("text") or "",
+        "events": events,
+        "answer_frames": frames,
+        "answer_text": answer_text,
+        "done": bool(question.get("done")),
+        "done_by": question.get("done_by"),
+        "filename": _submission_filename({"part": part, "number": number, "qtype": qtype}),
+        "row_count": row_count,
+        "status": status,
+        "messages": messages,
+    }
+
+
+def build_submission_review(questions: list[dict], set_id: str | None = None) -> dict:
+    reviewed = [_review_question(question) for question in questions]
+    summary = {
+        "total": len(reviewed),
+        "ready": sum(item["status"] == "ready" for item in reviewed),
+        "missing": sum(item["status"] == "missing" for item in reviewed),
+        "invalid": sum(item["status"] == "invalid" for item in reviewed),
+    }
+    return {
+        "set_id": set_id or (questions[0].get("set_id") if questions else None),
+        "download_filename": _SUBMISSION_ZIP_FILENAME,
+        "valid": bool(reviewed) and summary["ready"] == summary["total"],
+        "summary": summary,
+        "messages": [] if reviewed else ["Chưa có bộ đề để đóng gói."],
+        "questions": reviewed,
+    }
+
+
+def get_submission_review(set_id: str | None = None) -> dict:
+    return build_submission_review(list_questions(set_id), set_id)
+
+
+def _quoted_csv_value(value: str) -> str:
+    return f'"{value.replace(chr(34), chr(34) * 2)}"'
+
+
+def _render_submission_csv(question: dict) -> bytes:
+    frames = question.get("answer_frames") or []
+    qtype = question["qtype"]
+    if qtype == "kis":
+        lines = [f"{frame['video_id']},{frame['frame_idx']}" for frame in frames]
+    elif qtype == "qa":
+        answer = _quoted_csv_value(str(question.get("answer_text") or "").strip())
+        lines = [f"{frame['video_id']},{frame['frame_idx']},{answer}" for frame in frames]
+    else:
+        lines = [f"{frames[0]['video_id']},{','.join(str(frame['frame_idx']) for frame in frames)}"]
+    return ("\r\n".join(lines) + "\r\n").encode("utf-8")
+
+
+def build_submission_zip(questions: list[dict], set_id: str | None = None) -> tuple[bytes, dict]:
+    review = build_submission_review(questions, set_id)
+    if not review["valid"]:
+        raise ValueError("Bộ đáp án còn thiếu hoặc không hợp lệ.")
+    question_by_id = {question.get("question_id"): question for question in questions}
+    buffer = BytesIO()
+    with ZipFile(buffer, "w", compression=ZIP_DEFLATED) as archive:
+        archive.writestr("submission/", b"")
+        for item in review["questions"]:
+            archive.writestr(f"submission/{item['filename']}", _render_submission_csv(question_by_id[item["question_id"]]))
+    return buffer.getvalue(), review
+
+
+def get_submission_zip(set_id: str | None = None) -> tuple[bytes, dict]:
+    return build_submission_zip(list_questions(set_id), set_id)
+
+
+def get_submission_file(question_id: str) -> tuple[bytes, str] | None:
+    """Render just this one question's submission CSV for a single-file download
+    (the review screen's per-file "Tải CSV này" button) instead of the full ZIP."""
+    connection_url = settings.database_url.replace("+psycopg", "")
+    with psycopg.connect(connection_url) as conn, conn.cursor() as cur:
+        cur.execute(f"SELECT {_ROW_SELECT} FROM exam_questions WHERE question_id = %s", (question_id,))
+        row = cur.fetchone()
+    if not row:
+        return None
+    question = _row_to_dict(row)
+    review = _review_question(question)
+    if review["status"] != "ready":
+        raise ValueError("Câu hỏi chưa có đáp án hợp lệ để tải.")
+    return _render_submission_csv(question), review["filename"]
+
+
 def write_submission_csv(question: dict) -> None:
     """(Re)write, or remove, this question's submission/query-<N>-<type>.csv on
     disk so it always mirrors the currently saved answer(s) — matching the exact
     per-row format required by the organizers (data/thể lệ)."""
-    path = _SUBMISSION_ROOT / f"query-{question['number']}-{question['qtype']}.csv"
-    frames = question.get("answer_frames") or []
-    qtype = question["qtype"]
-
-    rows: list[list[str]] = []
-    if qtype == "kis":
-        rows = [[frame["video_id"], str(frame["frame_idx"])] for frame in frames]
-    elif qtype == "qa" and question.get("answer_text"):
-        rows = [[frame["video_id"], str(frame["frame_idx"]), question["answer_text"]] for frame in frames]
-    elif qtype == "trake" and question.get("events") and len(frames) == len(question["events"]):
-        rows = [[frames[0]["video_id"], *[str(frame["frame_idx"]) for frame in frames]]]
-
-    if not rows:
+    path = _SUBMISSION_ROOT / _submission_filename(question)
+    review = _review_question(question)
+    if review["status"] != "ready":
         path.unlink(missing_ok=True)
         return
     _SUBMISSION_ROOT.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        csv.writer(handle, quoting=csv.QUOTE_MINIMAL).writerows(rows)
+    path.write_bytes(_render_submission_csv(question))
 
 
 def toggle_answer_frame(question_id: str, video_id: str, frame_idx: int, pts_time: float) -> dict | None:

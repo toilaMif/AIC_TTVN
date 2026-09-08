@@ -21,10 +21,12 @@ dependencies = [
   "pyyaml>=6.0,<7",
   "sqlalchemy>=2.0,<3",
   "sentencepiece>=0.2,<1",
+  "sentence-transformers>=3.0,<4",
   "transformers>=4.40,<5",
   "typer>=0.16,<1",
   "uvicorn[standard]>=0.35,<1",
   "yt-dlp>=2025.7.21",
+  "kaggle>=2.2.4",
 ]
 
 [build-system]

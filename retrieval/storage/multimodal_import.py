@@ -153,7 +153,15 @@ def import_objects(root: Path, artifact_batch: str | None = None) -> dict[str, i
     if frame["detection_id"].duplicated().any():
         raise ValueError("Duplicate object detection_id")
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
-    video_id = _validate_video(frame, summary, "Object detection")
+    if frame.empty:
+        # A valid video can contain no supported COCO object. V2 writes an
+        # empty detections table plus a per-frame summary; importing it should
+        # clear stale detections instead of fabricating a sentinel row.
+        video_id = str(summary.get("video_id", "")).strip()
+        if not video_id:
+            raise ValueError("Empty object artifact requires summary.video_id")
+    else:
+        video_id = _validate_video(frame, summary, "Object detection")
     group = dataset_group(video_id)
     pipeline_version = str(summary["pipeline_version"])
     run_id = f"object-{pipeline_version}-{video_id.lower()}"
@@ -161,7 +169,8 @@ def import_objects(root: Path, artifact_batch: str | None = None) -> dict[str, i
 
     url = settings.database_url.replace("+psycopg", "")
     with psycopg.connect(url) as conn, conn.cursor() as cur:
-        _ensure_keyframes(cur, keyframe_ids, "Object detection")
+        if keyframe_ids:
+            _ensure_keyframes(cur, keyframe_ids, "Object detection")
         _start_run(cur, run_id, "object", len(frame), group, artifact_batch)
         cur.execute("DELETE FROM object_detections WHERE video_id=%s", (video_id,))
         with cur.copy(

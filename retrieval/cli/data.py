@@ -1,6 +1,10 @@
 from pathlib import Path
 
+import pandas as pd
+import psycopg
 import typer
+
+from retrieval.config import settings
 
 from retrieval.indexes.milvus import (
     DEFAULT_COLLECTION,
@@ -12,6 +16,7 @@ from retrieval.ingest.audit import audit as run_audit
 from retrieval.ingest.audit import write_report
 from retrieval.ingest.videos import download_videos as run_download_videos
 from retrieval.ingest.videos import select_demo as run_select_demo
+from retrieval.search.caption_semantic import embed_and_upsert_captions, search_captions_semantic
 from retrieval.search.global_visual import search_text_diversified
 from retrieval.storage.asr_import import import_asr as run_import_asr
 from retrieval.storage.metadata_import import import_metadata as run_import_metadata
@@ -155,6 +160,42 @@ def search_text(
             f"{rank}. score={result.score:.5f} video_id={result.video_id} "
             f"frame_idx={result.frame_idx} pts_time={result.pts_time} "
             f"shot_id={result.shot_id} keyframe_id={result.keyframe_id} url={result.frame_url}"
+        )
+
+
+@app.command("embed-captions")
+def embed_captions() -> None:
+    """Backfill the caption-embedding Milvus collection for every video
+    already in frame_captions (one-off catch-up for videos imported
+    before semantic caption search existed; new imports embed themselves
+    automatically via caption_import.import_captions)."""
+    connection_url = settings.database_url.replace("+psycopg", "")
+    with psycopg.connect(connection_url) as conn, conn.cursor() as cur:
+        cur.execute("SELECT DISTINCT video_id FROM frame_captions ORDER BY video_id")
+        video_ids = [row[0] for row in cur.fetchall()]
+    typer.echo(f"videos_to_embed={len(video_ids)}")
+    total_embedded = 0
+    for index, video_id in enumerate(video_ids, start=1):
+        with psycopg.connect(connection_url) as conn:
+            frame = pd.read_sql(
+                "SELECT keyframe_id, frame_idx, search_text_vi FROM frame_captions WHERE video_id=%s",
+                conn,
+                params=(video_id,),
+            )
+        embedded = embed_and_upsert_captions(frame, video_id)
+        total_embedded += embedded
+        if index % 10 == 0 or index == len(video_ids):
+            typer.echo(f"[{index}/{len(video_ids)}] {video_id} embedded={embedded} total={total_embedded}")
+    typer.echo(f"done videos={len(video_ids)} total_embedded={total_embedded}")
+
+
+@app.command("search-captions-semantic")
+def search_captions_semantic_cli(query: str, top_k: int = 10) -> None:
+    """Quick manual smoke test for semantic caption search."""
+    for rank, result in enumerate(search_captions_semantic(query, top_k), start=1):
+        typer.echo(
+            f"{rank}. score={result.score:.4f} video_id={result.video_id} "
+            f"frame_idx={result.frame_idx} text={result.text[:80]!r}"
         )
 
 

@@ -62,8 +62,15 @@ jobs/output/
 !.env.example
 *.pem
 *.key
+HANDOFF.md
 secrets.json
 credentials.json
+
+# ===== Local scratch / other-tool artifacts =====
+.tmp/
+.opencode/
+opencode.json
+pipelines/kaggle/notebooks/06-frame-understanding/downloads/
 
 # ===== Editors / OS =====
 .vscode/
