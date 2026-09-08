@@ -1,0 +1,41 @@
+AIC V2 CPU smoke test
+=====================
+
+Command:
+  & '.venv\Scripts\python.exe' pipelines\kaggle\notebooks_V2\scripts\smoke_test.py
+
+Environment:
+  Python 3.11.9
+  pandas 2.3.3
+  numpy 2.4.6
+  Execution mode: local CPU
+  Input: synthetic temporary data (video_id=L99_V001)
+  Kaggle: not used
+
+Result:
+  exit_code=0
+  status=PASS
+  final_line=AIC V2 CPU smoke test: PASS
+
+Key output:
+  frame_documents=2
+  shot_documents=2
+  event_documents=1
+  sparse_postings=80
+  sqlite_documents=5
+  fts5=true
+  frame_vectors=2
+  shot_vectors=2
+  vector_dimension=4
+  vectors_normalized=true
+  p50_ms=2.14795
+  p95_ms=2.66181
+  p99_ms=2.700762
+  recall_at_1_doc_id=0.25
+  recall_at_1_shot_id=0.5
+  recall_at_1_video_id=1.0
+  ann_built=false
+  ann_reason=faiss is not installed in the local environment
+
+This is a local contract/smoke test on synthetic data. It must not be
+represented as a successful Kaggle run or as a real-dataset quality result.

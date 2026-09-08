@@ -1,0 +1,17 @@
+# Install once in a Kaggle session or provide these packages in a runtime bundle.
+av==14.4.0
+opencv-python-headless>=4.10,<5
+open-clip-torch>=2.32,<3
+pandas>=2.2,<3
+pyarrow>=19,<20
+Pillow>=10,<12
+numpy>=2,<3
+# Optional ANN builder; stage 06 falls back to normalized payloads when absent.
+# faiss-cpu>=1.9,<2
+scikit-learn>=1.5,<2
+ffmpeg-python>=0.2,<1
+faster-whisper==1.1.0
+ctranslate2>=4.5.0,<5
+ultralytics==8.4.123
+# PaddleOCR and Qwen are intentionally profile-specific; install them only for
+# stages 02/05 when the corresponding GPU profile is enabled.

@@ -8,6 +8,47 @@ Hiện tại ứng dụng hỗ trợ tìm kiếm hình ảnh bằng OpenCLIP, l�
 và nhãn object detection. Dữ liệu frame-understanding/scene filter chỉ khả dụng
 khi batch có output stage 06.
 
+## Ảnh chụp giao diện
+
+**Đăng nhập** — modal đơn giản, yêu cầu tài khoản/mật khẩu chung của nhóm.
+
+![Đăng nhập](docs/screenshots/login.png)
+
+**Màn hình chính** — cột trái là bộ đề thi (nếu có import), tối đa 3 ô truy vấn
+song song (Caption/Caption ngữ nghĩa/Visual/ASR), phạm vi lọc theo batch/thư
+mục/video, và cấu hình số kết quả. Cột phải hiển thị kết quả.
+
+![Màn hình chính](docs/screenshots/main-empty.png)
+
+**Tìm kiếm Caption (Grid View)** — kết quả dạng lưới, mỗi ảnh kèm video ID,
+frame, mô tả caption và điểm số liên quan.
+
+![Kết quả Caption dạng lưới](docs/screenshots/caption-search-grid.png)
+
+**Tìm kiếm Caption (Cluster View)** — cùng một bộ kết quả nhưng gom nhóm theo
+từng video, có nút khóa 🔒 để giới hạn tìm kiếm tiếp theo vào đúng video đó.
+
+![Kết quả Caption dạng cụm](docs/screenshots/caption-search-cluster.png)
+
+**Tìm kiếm Visual (OpenCLIP)** — truy vấn tiếng Việt "người đi xe đạp trên
+đường" trả về đúng các cảnh đua xe đạp quay từ flycam, minh họa khả năng hiểu
+ngữ nghĩa hình ảnh của OpenCLIP sau bước dịch máy Việt→Anh.
+
+![Kết quả Visual search](docs/screenshots/visual-search.png)
+
+**Bộ đề thi (quản lý câu hỏi KIS/QA/TRAKE)** — danh sách câu hỏi import từ file
+ZIP, đánh dấu đã xong kèm avatar người phụ trách, dùng để chọn frame/nhập đáp
+án rồi xuất submission CSV đúng chuẩn ban tổ chức.
+
+![Bộ đề thi](docs/screenshots/exam-question-bank.png)
+
+**Frame Player (xem video + chọn đáp án)** — mở khi bấm vào một kết quả tìm
+kiếm (tab mới): phát trực tiếp video nguồn (YouTube) tại đúng mốc thời gian
+của frame, kèm bảng MAP KEYFRAMES để tua chính xác tới từng keyframe và chọn
+làm đáp án cho câu hỏi đang trả lời.
+
+![Frame Player](docs/screenshots/frame-player.png)
+
 ## Kiến trúc
 
 ```text
