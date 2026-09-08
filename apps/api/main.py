@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -21,6 +21,9 @@ from apps.api.questions import (
     set_answer_text,
     set_question_done,
     toggle_answer_frame,
+    get_submission_file,
+    get_submission_review,
+    get_submission_zip,
 )
 
 from retrieval.search.asr import search_asr
@@ -29,7 +32,8 @@ from retrieval.search.global_visual import (
     localized_search,
     search_text_diversified,
 )
-from retrieval.search.textual import search_objects, search_ocr
+from retrieval.search.caption_semantic import search_captions_semantic
+from retrieval.search.textual import search_captions, search_objects, search_ocr
 from retrieval.search.video_topic import search_topic
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -221,7 +225,17 @@ def video_search(
 
 def _matches_scope(video_id: str, batch: str, directory: str) -> bool:
     scopes = [value.strip().lower() for value in (batch, directory) if value and value.lower() != "all"]
-    return not scopes or any(video_id.lower().startswith(scope.replace("_", "")) or video_id.lower().startswith(scope) for scope in scopes)
+    if not scopes:
+        return True
+    video_lower = video_id.lower()
+    for scope in scopes:
+        # Artifact directories are named like "l21_a" (batch + sub-batch suffix),
+        # but video_ids are "l21_v001" — strip the sub-batch suffix so the filter
+        # matches on the batch letter/number, not the literal directory name.
+        base = scope.rsplit("_", 1)[0] if "_" in scope else scope
+        if video_lower.startswith(f"{base}_") or video_lower.startswith(scope):
+            return True
+    return False
 
 
 def _scope(results, batch: str, directory: str):
@@ -317,6 +331,24 @@ def object_search(
     return [TextualSearchItem(**result.__dict__) for result in _scope(search_objects(query, min(200, top_k * 5), video_id=video_id), batch, directory)[:top_k]]
 
 
+@app.get("/search/caption", response_model=list[TextualSearchItem])
+def caption_search(
+    query: str = Query(min_length=1), top_k: int = Query(default=20, ge=1, le=200), batch: str = Query(default="all"), directory: str = Query(default="all"),
+    video_id: str | None = Query(default=None),
+    _: None = Depends(require_auth),
+) -> list[TextualSearchItem]:
+    return [TextualSearchItem(**result.__dict__) for result in _scope(search_captions(query, min(200, top_k * 5), video_id=video_id), batch, directory)[:top_k]]
+
+
+@app.get("/search/caption_semantic", response_model=list[TextualSearchItem])
+def caption_semantic_search(
+    query: str = Query(min_length=1), top_k: int = Query(default=20, ge=1, le=200), batch: str = Query(default="all"), directory: str = Query(default="all"),
+    video_id: str | None = Query(default=None),
+    _: None = Depends(require_auth),
+) -> list[TextualSearchItem]:
+    return [TextualSearchItem(**result.__dict__) for result in _scope(search_captions_semantic(query, min(200, top_k * 5), video_id=video_id), batch, directory)[:top_k]]
+
+
 @app.get("/search/topic", response_model=list[TopicSearchItem])
 def topic_search(
     query: str = Query(min_length=1), top_k: int = Query(default=20, ge=1, le=200), batch: str = Query(default="all"), directory: str = Query(default="all"),
@@ -360,6 +392,50 @@ def questions_list(
     _: None = Depends(require_auth),
 ) -> list[dict]:
     return list_questions(set_id)
+
+
+@app.get("/questions/submission/review")
+def questions_submission_review(
+    set_id: str | None = Query(default=None),
+    _: None = Depends(require_auth),
+) -> dict:
+    return get_submission_review(set_id)
+
+
+@app.get("/questions/submission/download")
+def questions_submission_download(
+    set_id: str | None = Query(default=None),
+    _: None = Depends(require_auth),
+) -> Response:
+    try:
+        archive, review = get_submission_zip(set_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    filename = review.get("download_filename") or "team_TTVN_round1.zip"
+    return Response(
+        content=archive,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.get("/questions/{question_id}/submission/download")
+def question_submission_download(
+    question_id: str,
+    _: None = Depends(require_auth),
+) -> Response:
+    try:
+        result = get_submission_file(question_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if result is None:
+        raise HTTPException(status_code=404, detail="Question not found")
+    content, filename = result
+    return Response(
+        content=content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.delete("/questions/{set_id}")

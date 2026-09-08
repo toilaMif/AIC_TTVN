@@ -190,9 +190,9 @@ def import_self_extracted(
                 embedding_version,
                 int(vectors.shape[1]),
                 len(vectors),
+                len(vectors),
                 group,
                 artifact_batch,
-                len(vectors),
             ),
         )
         with cur.copy(

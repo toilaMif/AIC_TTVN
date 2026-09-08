@@ -39,6 +39,170 @@ function getActiveQuestion() {
   }
 }
 
+function reviewSubmissionQuestions(questions) {
+  const reviewed = questions.map(question => {
+    const frames = question.answer_frames || [];
+    const events = question.events || [];
+    const messages = [];
+    let invalid = false;
+    frames.forEach((frame, index) => {
+      if (!frame.video_id) { messages.push(`Frame ${index + 1}: thiếu video_id.`); invalid = true; }
+      else if (String(frame.video_id).toLowerCase().endsWith('.mp4')) { messages.push(`Frame ${index + 1}: video_id không được chứa .mp4.`); invalid = true; }
+      if (!Number.isInteger(frame.frame_idx) || frame.frame_idx < 0) { messages.push(`Frame ${index + 1}: frame_idx không hợp lệ.`); invalid = true; }
+    });
+    if ((question.qtype === 'kis' || question.qtype === 'qa') && !frames.length) messages.push('Chưa chọn frame đáp án.');
+    if ((question.qtype === 'kis' || question.qtype === 'qa') && frames.length > 100) { messages.push('Vượt quá giới hạn 100 dòng đáp án.'); invalid = true; }
+    const answerText = (question.answer_text || '').trim();
+    if (question.qtype === 'qa' && !answerText) messages.push('Chưa nhập nội dung trả lời QA.');
+    if (question.qtype === 'qa' && answerText.length > 100) { messages.push('Nội dung trả lời QA vượt quá 100 ký tự.'); invalid = true; }
+    if (question.qtype === 'trake') {
+      if (!events.length) { messages.push('Câu TRAKE không có danh sách sự kiện.'); invalid = true; }
+      if (frames.length < events.length) messages.push(`Thiếu ${events.length - frames.length} frame cho chuỗi sự kiện.`);
+      if (frames.length > events.length) { messages.push(`Thừa ${frames.length - events.length} frame so với số sự kiện.`); invalid = true; }
+      if (new Set(frames.map(frame => frame.video_id).filter(Boolean)).size > 1) { messages.push('Tất cả frame TRAKE phải thuộc cùng một video.'); invalid = true; }
+      if (frames.some((frame, index) => index > 0 && Number(frame.pts_time) < Number(frames[index - 1].pts_time))) { messages.push('Các frame TRAKE chưa đúng thứ tự thời gian.'); invalid = true; }
+    }
+    const status = invalid ? 'invalid' : messages.length ? 'missing' : 'ready';
+    return {
+      ...question,
+      answer_text: answerText,
+      filename: `query-${question.part}-${question.number}-${question.qtype}.csv`,
+      row_count: question.qtype === 'trake' ? (status === 'ready' ? 1 : 0) : frames.length,
+      status,
+      messages,
+    };
+  });
+  const summary = {
+    total: reviewed.length,
+    ready: reviewed.filter(question => question.status === 'ready').length,
+    missing: reviewed.filter(question => question.status === 'missing').length,
+    invalid: reviewed.filter(question => question.status === 'invalid').length,
+  };
+  return {
+    set_id: questions[0]?.set_id || null,
+    download_filename: 'team_TTVN_round1.zip',
+    valid: reviewed.length > 0 && summary.ready === summary.total,
+    summary,
+    messages: reviewed.length ? [] : ['Chưa có bộ đề để đóng gói.'],
+    questions: reviewed,
+  };
+}
+
+function submissionCsv(question) {
+  const frames = question.answer_frames || [];
+  let lines;
+  if (question.qtype === 'kis') lines = frames.map(frame => `${frame.video_id},${frame.frame_idx}`);
+  else if (question.qtype === 'qa') {
+    const answer = `"${(question.answer_text || '').trim().replaceAll('"', '""')}"`;
+    lines = frames.map(frame => `${frame.video_id},${frame.frame_idx},${answer}`);
+  } else lines = [`${frames[0].video_id},${frames.map(frame => frame.frame_idx).join(',')}`];
+  return new TextEncoder().encode(`${lines.join('\r\n')}\r\n`);
+}
+
+const ZIP_CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let index = 0; index < 256; index += 1) {
+    let value = index;
+    for (let bit = 0; bit < 8; bit += 1) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+    table[index] = value >>> 0;
+  }
+  return table;
+})();
+
+function zipCrc32(bytes) {
+  let crc = 0xffffffff;
+  bytes.forEach(byte => { crc = ZIP_CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8); });
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function joinBytes(parts) {
+  const output = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+  let offset = 0;
+  parts.forEach(part => { output.set(part, offset); offset += part.length; });
+  return output;
+}
+
+function zipHeader(size) {
+  const bytes = new Uint8Array(size);
+  return { bytes, view: new DataView(bytes.buffer) };
+}
+
+function buildSubmissionZipBrowser(review) {
+  const encoder = new TextEncoder();
+  const entries = [{ name: 'submission/', data: new Uint8Array() }, ...review.questions.map(question => ({
+    name: `submission/${question.filename}`,
+    data: submissionCsv(question),
+  }))];
+  const localParts = [];
+  const centralParts = [];
+  let localOffset = 0;
+  entries.forEach(entry => {
+    const name = encoder.encode(entry.name);
+    const crc = zipCrc32(entry.data);
+    const local = zipHeader(30);
+    local.view.setUint32(0, 0x04034b50, true); local.view.setUint16(4, 20, true); local.view.setUint16(6, 0x0800, true);
+    local.view.setUint32(14, crc, true); local.view.setUint32(18, entry.data.length, true); local.view.setUint32(22, entry.data.length, true); local.view.setUint16(26, name.length, true);
+    const localEntry = joinBytes([local.bytes, name, entry.data]);
+    localParts.push(localEntry);
+    const central = zipHeader(46);
+    central.view.setUint32(0, 0x02014b50, true); central.view.setUint16(4, 20, true); central.view.setUint16(6, 20, true); central.view.setUint16(8, 0x0800, true);
+    central.view.setUint32(16, crc, true); central.view.setUint32(20, entry.data.length, true); central.view.setUint32(24, entry.data.length, true); central.view.setUint16(28, name.length, true); central.view.setUint32(42, localOffset, true);
+    centralParts.push(joinBytes([central.bytes, name]));
+    localOffset += localEntry.length;
+  });
+  const locals = joinBytes(localParts);
+  const centralDirectory = joinBytes(centralParts);
+  const end = zipHeader(22);
+  end.view.setUint32(0, 0x06054b50, true); end.view.setUint16(8, entries.length, true); end.view.setUint16(10, entries.length, true); end.view.setUint32(12, centralDirectory.length, true); end.view.setUint32(16, locals.length, true);
+  return new Blob([locals, centralDirectory, end.bytes], { type: 'application/zip' });
+}
+
+function saveDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function buildAnswerRows(question) {
+  const frames = question.answer_frames || [];
+  if (question.qtype === 'trake') {
+    return (question.events || []).map((eventItem, index) => {
+      const frame = frames[index];
+      return {
+        key: `${question.question_id}-${eventItem.label}`,
+        label: eventItem.label,
+        eventText: eventItem.text,
+        frame,
+        csvLine: frame ? `${frame.video_id},${frame.frame_idx}` : null,
+      };
+    });
+  }
+  const answer = `"${(question.answer_text || '').trim().replaceAll('"', '""')}"`;
+  return frames.map((frame, index) => ({
+    key: `${question.question_id}-${frame.video_id}-${frame.frame_idx}-${index}`,
+    label: `#${index + 1}`,
+    frame,
+    csvLine: question.qtype === 'qa' ? `${frame.video_id},${frame.frame_idx},${answer}` : `${frame.video_id},${frame.frame_idx}`,
+  }));
+}
+
+async function openAnswerFrame(videoId, ptsTime) {
+  if (!videoId) return;
+  try {
+    const response = await apiFetch(`/videos/${encodeURIComponent(videoId)}`);
+    if (!response.ok) return;
+    const video = await response.json();
+    const item = { video_id: videoId, pts_time: Number(ptsTime) || 0 };
+    const payload = encodeURIComponent(JSON.stringify({ item, modality: 'visual', watchUrl: video.watch_url }));
+    window.open(`${window.location.origin}/ui/?player=1&data=${payload}`, '_blank', 'noopener,noreferrer');
+  } catch {}
+}
+
 const AVATAR_COLORS = ['#ef3d00', '#2657c9', '#1f8a3d', '#6a2fc9', '#b5690a', '#0d8f9e', '#a3226f'];
 
 function avatarColor(username) {
@@ -82,7 +246,7 @@ function useCurrentAccount() {
   return account;
 }
 
-const MODES = [['visual', 'Visual / Text'], ['asr', 'ASR'], ['ocr', 'OCR'], ['object', 'Object'], ['topic', 'Topic']];
+const MODES = [['caption', 'Caption'], ['caption_semantic', 'Caption (ngữ nghĩa)'], ['visual', 'Visual / Text'], ['asr', 'ASR']];
 
 function LockIcon({ locked }) {
   return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -118,6 +282,19 @@ function groupByVideo(items) {
   return order.map(key => ({ key, items: groups.get(key) }));
 }
 
+function groupFusionByVideo(entries) {
+  // Same grouping as groupByVideo, but for fusion entries ({item, ...}) instead
+  // of raw result items, so Fusion's cluster view can show one row per video too.
+  const order = [];
+  const groups = new Map();
+  entries.forEach(entry => {
+    const key = entry.item.video_id;
+    if (!groups.has(key)) { groups.set(key, []); order.push(key); }
+    groups.get(key).push(entry);
+  });
+  return order.map(key => ({ key, entries: groups.get(key) }));
+}
+
 function fuseResults(groups) {
   if (groups.length < 2) return [];
   const merged = new Map();
@@ -142,7 +319,7 @@ function QueryInput({ item, canRemove, onChange, onRemove }) {
     <div className="modality-tabs">{MODES.map(([value, label]) => {
       return <label key={value}><input type="radio" checked={item.modality === value} onChange={() => onChange({ modality: value })}/><span>{label}</span></label>;
     })}</div>
-    <textarea value={item.text} onChange={event => onChange({ text: event.target.value })} placeholder={item.modality === 'asr' ? 'Nhập nội dung lời nói cần tìm...' : item.modality === 'ocr' ? 'Nhập chữ xuất hiện trong video...' : item.modality === 'object' ? 'Nhập tên vật thể cần tìm...' : item.modality === 'topic' ? 'Nhập chủ đề/nội dung tổng quát của video...' : 'Mô tả cảnh cần tìm...'}/>
+    <textarea value={item.text} onChange={event => onChange({ text: event.target.value })} placeholder={item.modality === 'asr' ? 'Nhập nội dung lời nói cần tìm...' : item.modality === 'ocr' ? 'Nhập chữ xuất hiện trong video...' : item.modality === 'object' ? 'Nhập tên vật thể cần tìm...' : item.modality === 'caption' ? 'Mô tả nội dung cảnh (caption)...' : item.modality === 'caption_semantic' ? 'Mô tả nội dung cảnh (tìm theo ngữ nghĩa)...' : item.modality === 'topic' ? 'Nhập chủ đề/nội dung tổng quát của video...' : 'Mô tả cảnh cần tìm...'}/>
     <footer><button disabled={!canRemove} onClick={onRemove}>- Remove input</button></footer>
   </section>;
 }
@@ -283,6 +460,142 @@ function VideoSearch({ currentVideoId, onSelect }) {
 
 const PRESENCE_STALE_MS = 5 * 60 * 1000;
 const QUESTIONS_POLL_MS = 8000;
+
+function SubmissionReview({ setId, fallbackQuestions = [], onClose, onEdit, onDownload, downloading }) {
+  const [review, setReview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedId, setSelectedId] = useState(null);
+  const [fileDownloadingId, setFileDownloadingId] = useState(null);
+  const [copiedKey, setCopiedKey] = useState('');
+
+  const loadReview = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const query = setId ? `?set_id=${encodeURIComponent(setId)}` : '';
+      const response = await apiFetch(`/questions/submission/review${query}`);
+      if (response.ok) setReview(await response.json());
+      else if (response.status === 404 && fallbackQuestions.length) setReview(reviewSubmissionQuestions(fallbackQuestions));
+      else throw new Error('Không tải được dữ liệu rà soát.');
+    } catch (exception) {
+      setError(exception.message || 'Không tải được dữ liệu rà soát.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadReview(); }, [setId, fallbackQuestions]);
+  useEffect(() => {
+    const closeOnEscape = event => event.key === 'Escape' && onClose();
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
+  useEffect(() => {
+    const questions = review?.questions || [];
+    if (!questions.length) return;
+    if (!questions.some(question => question.question_id === selectedId)) setSelectedId(questions[0].question_id);
+  }, [review]);
+
+  const statusLabel = { ready: 'Sẵn sàng', missing: 'Thiếu đáp án', invalid: 'Không hợp lệ' };
+  const selected = review?.questions?.find(question => question.question_id === selectedId) || null;
+  const rows = selected ? buildAnswerRows(selected) : [];
+  const finalTrakeLine = selected?.qtype === 'trake' && selected.status === 'ready'
+    ? `${selected.answer_frames[0].video_id},${selected.answer_frames.map(frame => frame.frame_idx).join(',')}`
+    : null;
+
+  const copyText = async (key, text) => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      window.setTimeout(() => setCopiedKey(current => current === key ? '' : current), 1200);
+    } catch {}
+  };
+
+  const downloadOne = async question => {
+    if (!question || question.status !== 'ready' || fileDownloadingId) return;
+    setFileDownloadingId(question.question_id);
+    setError('');
+    try {
+      const response = await apiFetch(`/questions/${encodeURIComponent(question.question_id)}/submission/download`);
+      if (!response.ok) throw new Error();
+      saveDownload(await response.blob(), question.filename);
+    } catch {
+      setError('Không tải được file CSV này.');
+    } finally {
+      setFileDownloadingId(null);
+    }
+  };
+
+  return <div className="submission-review-overlay" role="dialog" aria-modal="true" aria-label="Kiểm tra kết quả">
+    <section className="submission-review-screen">
+      <header className="submission-review-header">
+        <div><span>SUBMISSION REVIEW</span><h1>Kiểm tra kết quả bộ đáp án</h1><p>{review?.set_id || setId || 'Bộ đề hiện tại'} · thư mục <code>submission/</code></p></div>
+        <div className="submission-review-summary">
+          <span><b>{review?.summary?.total ?? 0}</b>Tổng câu</span>
+          <span className="ready"><b>{review?.summary?.ready ?? 0}</b>Sẵn sàng</span>
+          <span className="missing"><b>{review?.summary?.missing ?? 0}</b>Thiếu</span>
+          <span className="invalid"><b>{review?.summary?.invalid ?? 0}</b>Lỗi</span>
+        </div>
+        <div className="submission-review-header-actions">
+          <button type="button" className="submission-refresh-button" onClick={loadReview} disabled={loading} aria-label="Kiểm tra lại">↻</button>
+          <button type="button" className="workspace-download-button" onClick={onDownload} disabled={!review?.valid || downloading} title={review?.valid ? 'Tải ZIP đáp án hoàn chỉnh' : 'Cần hoàn tất và rà soát toàn bộ đáp án trước khi tải'}>{downloading ? 'Đang tải...' : 'Tải ZIP toàn bộ'}</button>
+          <button type="button" className="submission-review-close" onClick={onClose} aria-label="Đóng">×</button>
+        </div>
+      </header>
+      {error && <p className="error-banner submission-review-error">{error}</p>}
+      <div className="submission-review-body">
+        <nav className="submission-file-list">
+          {loading ? <div className="submission-review-loading"><i className="spinner"/></div> :
+            !review?.questions?.length ? <p className="submission-review-empty">{review?.messages?.[0] || 'Chưa có bộ đề.'}</p> :
+            review.questions.map(question => <button
+              type="button"
+              key={question.question_id}
+              className={`submission-file-item status-${question.status}${question.question_id === selectedId ? ' active' : ''}`}
+              onClick={() => setSelectedId(question.question_id)}
+            >
+              <span className={`question-type-badge type-${question.qtype}`}>{question.qtype.toUpperCase()}</span>
+              <span className="submission-file-name">{question.filename}</span>
+              <span className={`submission-status status-${question.status}`}>{statusLabel[question.status]}</span>
+            </button>)}
+        </nav>
+        <div className="submission-file-detail">
+          {!selected ? <p className="submission-review-empty">Chọn 1 file đáp án bên trái để xem chi tiết.</p> : <>
+            <header className="submission-file-detail-header">
+              <p className="submission-question-text">{selected.text}</p>
+              <div className="submission-file-detail-actions">
+                <span className={`submission-status status-${selected.status}`}>{statusLabel[selected.status]}</span>
+                <span>{selected.row_count} dòng CSV</span>
+                <button type="button" onClick={() => onEdit(selected.question_id)}>Quay lại sửa</button>
+                <button type="button" className="workspace-download-button" onClick={() => downloadOne(selected)} disabled={selected.status !== 'ready' || fileDownloadingId === selected.question_id} title={selected.status === 'ready' ? 'Tải file CSV của câu này' : 'Cần hoàn tất đáp án trước khi tải'}>{fileDownloadingId === selected.question_id ? 'Đang tải...' : 'Tải CSV này'}</button>
+              </div>
+            </header>
+            {selected.qtype === 'qa' && <div className="submission-answer-text"><span>Đáp án QA</span><b>{selected.answer_text || '—'}</b><small>{(selected.answer_text || '').length}/100 ký tự</small></div>}
+            {selected.messages?.length > 0 && <ul className="submission-validation-messages">{selected.messages.map(message => <li key={message}>{message}</li>)}</ul>}
+            <div className="submission-answer-rows">
+              {!rows.length && <p className="submission-review-empty">Chưa có dòng đáp án nào.</p>}
+              {rows.map(row => <div className={`submission-answer-row${row.frame ? '' : ' empty'}`} key={row.key}>
+                <span className="submission-answer-row-label">{row.label}</span>
+                {row.frame ? <>
+                  <button type="button" className="submission-answer-row-csv" onClick={() => openAnswerFrame(row.frame.video_id, row.frame.pts_time)} title="Mở lại đúng frame/video để coi lại">
+                    <code>{row.csvLine}</code>
+                  </button>
+                  <button type="button" className="submission-copy-button" onClick={() => copyText(row.key, row.csvLine)}>{copiedKey === row.key ? 'Đã copy' : 'Copy'}</button>
+                </> : <span className="submission-answer-row-missing">Chưa chọn frame</span>}
+              </div>)}
+              {finalTrakeLine && <div className="submission-answer-row final">
+                <span className="submission-answer-row-label">CSV</span>
+                <code>{finalTrakeLine}</code>
+                <button type="button" className="submission-copy-button" onClick={() => copyText('final', finalTrakeLine)}>{copiedKey === 'final' ? 'Đã copy' : 'Copy'}</button>
+              </div>}
+            </div>
+          </>}
+        </div>
+      </div>
+    </section>
+  </div>;
+}
 
 function QuestionBank({ onSelectQuestion, currentUsername, isAdmin }) {
   const [questions, setQuestions] = useState([]);
@@ -470,7 +783,7 @@ function QuestionBank({ onSelectQuestion, currentUsername, isAdmin }) {
           <b>{eventItem.label}</b><span>{eventItem.text}</span>
         </button>)}
       </div>}
-    </div>}
+      </div>}
   </section>;
 }
 
@@ -485,6 +798,9 @@ function PlayerScreen() {
   const [allQuestions, setAllQuestions] = useState([]);
   const [activeQuestionId, setActiveQuestionId] = useState(() => getActiveQuestion()?.question_id || '');
   const [answerError, setAnswerError] = useState('');
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [submissionReview, setSubmissionReview] = useState(null);
+  const [submissionDownloading, setSubmissionDownloading] = useState(false);
   const iframeRef = useRef(null);
   const currentTimeRef = useRef(0);
   const ytPlayerRef = useRef(null);
@@ -535,6 +851,7 @@ function PlayerScreen() {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
   const activeQuestion = allQuestions.find(question => question.question_id === activeQuestionId) || null;
+  const questionSetId = allQuestions[0]?.set_id || null;
   const changeActiveQuestion = questionId => {
     setActiveQuestionId(questionId);
     setAnswerError('');
@@ -565,6 +882,57 @@ function PlayerScreen() {
   const isFrameAnswered = row => (activeQuestion?.answer_frames || []).some(
     frame => frame.video_id === data?.item?.video_id && frame.frame_idx === row.frame_idx
   );
+  useEffect(() => {
+    if (!questionSetId) {
+      setSubmissionReview(null);
+      return;
+    }
+    let cancelled = false;
+    apiFetch(`/questions/submission/review?set_id=${encodeURIComponent(questionSetId)}`)
+      .then(response => response.ok ? response.json() : null)
+      .then(review => { if (!cancelled) setSubmissionReview(review || reviewSubmissionQuestions(allQuestions)); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [questionSetId, allQuestions]);
+  const editFromReview = questionId => {
+    const question = allQuestions.find(item => item.question_id === questionId);
+    setReviewOpen(false);
+    if (!question) return;
+    setActiveQuestionId(questionId);
+    setActiveQuestion(question);
+    setAnswerError('');
+  };
+  const downloadSubmission = async () => {
+    if (!questionSetId || !submissionReview?.valid || submissionDownloading) return;
+    setSubmissionDownloading(true);
+    setAnswerError('');
+    try {
+      const response = await apiFetch(`/questions/submission/download?set_id=${encodeURIComponent(questionSetId)}`);
+      if (response.status === 404) {
+        saveDownload(buildSubmissionZipBrowser(submissionReview), submissionReview.download_filename || 'team_TTVN_round1.zip');
+        return;
+      }
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.detail || 'Không thể đóng gói bộ đáp án.');
+      }
+      const blob = await response.blob();
+      const disposition = response.headers.get('Content-Disposition') || '';
+      const filename = disposition.match(/filename="?([^";]+)"?/i)?.[1] || submissionReview.download_filename || 'team_TTVN_round1.zip';
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (exception) {
+      setAnswerError(exception.message || 'Không thể đóng gói bộ đáp án.');
+    } finally {
+      setSubmissionDownloading(false);
+    }
+  };
   const activeKeyframeIndex = useMemo(() => {
     let index = -1;
     for (let i = 0; i < keyframeMap.length; i += 1) {
@@ -637,7 +1005,7 @@ function PlayerScreen() {
     window.addEventListener('pointerup', stop);
     window.addEventListener('pointercancel', stop);
   };
-  if (!data) return <main className="player-screen"><h1>Khong co du lieu keyframe</h1><button className="close-player" onClick={closePlayer} aria-label="Dong cua so">&times;</button></main>;
+  if (!data) return <main className="player-screen player-picker-screen"><header className="player-header player-picker-header"><div className="player-title"><h1>Frame Player</h1><p>Chọn video để bắt đầu xem</p></div><VideoSearch onSelect={switchVideo} /><div className="account-control"><Avatar username={currentUsername} title={currentUsername ? `Đăng nhập: ${currentUsername}` : ''} size="lg" /><button type="button" className="logout-button" onClick={logout}>Đăng xuất</button></div><button className="close-player" onClick={closePlayer} aria-label="Đóng cửa sổ" title="Đóng cửa sổ">&times;</button></header><div className="player-picker-empty"><strong>Chưa chọn video</strong><p>Tìm theo tiêu đề hoặc video ID để mở video.</p></div></main>;
   const { item, modality, watchUrl } = data;
   const timestamp = Math.max(0, Number(modality === 'asr' ? item.start_time : item.pts_time) || 0);
   const start = Math.floor(timestamp);
@@ -655,7 +1023,7 @@ function PlayerScreen() {
       {answerError && <p className="error-banner">{answerError}</p>}
     </div>
     <div className="workspace-top">
-      <h3>Keyframe hiện tại</h3>
+      <div className="workspace-top-heading"><h3>Keyframe hiện tại</h3><div className="workspace-submission-actions"><button type="button" className="workspace-review-button" onClick={() => setReviewOpen(true)} disabled={!questionSetId}>Kiểm tra kết quả</button></div></div>
       {activeKeyframeIndex >= 0 ? <dl className="workspace-current">
         <div><dt>n</dt><dd>{keyframeMap[activeKeyframeIndex].n}</dd></div>
         <div><dt>pts_time</dt><dd>{keyframeMap[activeKeyframeIndex].pts_time.toFixed(2)}s ({formatTimestamp(keyframeMap[activeKeyframeIndex].pts_time)})</dd></div>
@@ -682,12 +1050,12 @@ function PlayerScreen() {
         })}
       </div>
     </div>
-  </aside></div></main>;
+  </aside></div>{reviewOpen && <SubmissionReview setId={questionSetId} fallbackQuestions={allQuestions} onClose={() => setReviewOpen(false)} onEdit={editFromReview} onDownload={downloadSubmission} downloading={submissionDownloading} />}</main>;
 }
 
 function MainScreen() {
   const { username: currentUsername, isAdmin } = useCurrentAccount();
-  const [inputs, setInputs] = useState([{ id: 1, modality: 'visual', text: '' }, { id: 2, modality: 'asr', text: '' }]);
+  const [inputs, setInputs] = useState([{ id: 0, modality: 'caption', text: '' }, { id: 1, modality: 'visual', text: '' }, { id: 2, modality: 'asr', text: '' }]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -744,6 +1112,10 @@ function MainScreen() {
     sessionStorage.setItem('aic-player', JSON.stringify({ item, modality, watchUrl: video.watch_url }));
     const payload = encodeURIComponent(JSON.stringify({ item, modality, watchUrl: video.watch_url }));
     window.open(`${window.location.origin}/ui/?player=1&data=${payload}`, '_blank', 'noopener,noreferrer');
+  }
+
+  function openVideoPlayer() {
+    window.open(`${window.location.origin}/ui/?player=1`, '_blank', 'noopener,noreferrer');
   }
 
   async function toggleVideoScope(videoId) {
@@ -811,12 +1183,12 @@ function MainScreen() {
       <section className="config-section"><div className="section-heading"><span>CONFIGURATIONS</span></div><div className="config-grid"><label>Results<select value={config.topK} onChange={event => setConfig({...config, topK: Number(event.target.value)})}><option value={20}>20</option><option value={50}>50</option><option value={100}>100</option><option value={150}>150</option><option value={200}>200</option></select></label><label>Candidate K<input type="number" min="20" max="500" value={config.candidateK} onChange={event => setConfig({...config, candidateK: Math.max(20, Math.min(500, Number(event.target.value) || 20))})}/></label><label>Time gap (s)<input type="number" min="0" max="60" step="0.5" value={config.temporalGap} onChange={event => setConfig({...config, temporalGap: Math.max(0, Math.min(60, Number(event.target.value) || 0))})}/></label></div></section>
     </aside><div className="panel-splitter sidebar-splitter" onPointerDown={event => resizePanel(event, 'sidebar')} />
     <main className="results-pane">
-      <header className="results-header"><div><span className="results-label">RESULTS <b>{loading ? `${elapsed.toFixed(1)}s` : visibleTotal}</b></span><h1>{activeTitle}</h1><div className="result-summary"><small>WHOLE</small>{videoScope && <span className="video-scope-badge">VIDEO {videoScope.video_id}</span>}</div></div><div className="result-meta"><div className="result-type-switcher">{[['fusion','Fusion'],['visual','Visual'],['ocr','OCR'],['asr','ASR'],['object','Object'],['topic','Topic']].map(([value,label]) => <button type="button" key={value} disabled={value === 'fusion' && groups.length < 2} className={resultModality === value ? 'active' : ''} onClick={() => setResultModality(value)}>{label}</button>)}</div><select className="view-select" aria-label="Result view" value={displayView} onChange={event => setDisplayView(event.target.value)}><option value="grid">Grid View</option><option value="cluster">Cluster View</option></select><select aria-label="Filter scene type" value={sceneFilter} onChange={event => setSceneFilter(event.target.value)}><option value="all">All scenes</option><option value="daytime">Daytime</option><option value="night">Night</option><option value="rain">Rain</option><option value="sunny">Sunny</option><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option></select></div></header>
+      <header className="results-header"><div><span className="results-label">RESULTS <b>{loading ? `${elapsed.toFixed(1)}s` : visibleTotal}</b></span><h1>{activeTitle}</h1><div className="result-summary"><button type="button" className="whole-player-button" onClick={openVideoPlayer} title="Mở trình xem video"><span aria-hidden="true">▶</span> VIDEO PLAYER</button>{videoScope && <span className="video-scope-badge">VIDEO {videoScope.video_id}</span>}</div></div><div className="result-meta"><div className="result-type-switcher">{[['fusion','Fusion'],['caption','Caption'],['caption_semantic','Caption (NN)'],['visual','Visual'],['asr','ASR']].map(([value,label]) => <button type="button" key={value} disabled={value === 'fusion' && groups.length < 2} className={resultModality === value ? 'active' : ''} onClick={() => setResultModality(value)}>{label}</button>)}</div><select className="view-select" aria-label="Result view" value={displayView} onChange={event => setDisplayView(event.target.value)}><option value="grid">Grid View</option><option value="cluster">Cluster View</option></select><select aria-label="Filter scene type" value={sceneFilter} onChange={event => setSceneFilter(event.target.value)}><option value="all">All scenes</option><option value="daytime">Daytime</option><option value="night">Night</option><option value="rain">Rain</option><option value="sunny">Sunny</option><option value="indoor">Indoor</option><option value="outdoor">Outdoor</option></select></div></header>
       {loading && <div className="loading-state"><i className="spinner"/><strong>Đang tìm kiếm video</strong><span>Querying indexes and ranking candidates...</span><time>{elapsed.toFixed(1)}s</time></div>}
       {!loading && !groups.length && <div className="welcome"><strong>Bắt đầu bằng một truy vấn</strong><p>Nhập mô tả hình ảnh hoặc lời thoại tiếng Việt ở cột bên trái.</p></div>}
-      {!loading && resultModality === 'fusion' && groups.length > 0 && <div className={`result-columns view-${displayView}`}><section className="result-group" style={{width: '100%'}}><header><h2>Fusion (Reciprocal Rank Fusion)</h2><span>{fusedResults.length}</span></header><p className="group-query">Kết hợp {groups.length} input: {groups.map(group => `${group.modality}:"${group.query}"`).join(', ')}</p><div className="result-grid">{fusedResults.length ? fusedResults.map((entry,index) => <FusionCard key={entry.key} entry={entry} index={index} onOpen={openPlayer}/>) : <div className="empty-state">Không tìm thấy kết quả phù hợp.</div>}</div></section></div>}
+      {!loading && resultModality === 'fusion' && groups.length > 0 && <div className={`result-columns view-${displayView}`}><section className="result-group" style={{width: '100%'}}><header><h2>Fusion (Reciprocal Rank Fusion)</h2><span>{fusedResults.length}</span></header><p className="group-query">Kết hợp {groups.length} input: {groups.map(group => `${group.modality}:"${group.query}"`).join(', ')}</p>{!fusedResults.length ? <div className="empty-state">Không tìm thấy kết quả phù hợp.</div> : displayView === 'cluster' ? <div className="result-clusters">{groupFusionByVideo(fusedResults).map(cluster => { const videoId = cluster.key; const locked = videoScope?.video_id === videoId; return <div className="result-cluster-row" key={cluster.key}><div className="result-cluster-video"><button type="button" className={`video-lock-button${locked ? ' active' : ''}`} onClick={() => toggleVideoScope(videoId)} aria-label={locked ? `Bỏ khóa ${videoId}` : `Khóa tìm kiếm vào ${videoId}`} aria-pressed={locked} title={locked ? 'Bỏ khóa video' : 'Khóa tìm kiếm vào video này'}><LockIcon locked={locked}/></button><strong>{videoId}</strong>{locked && <small>Đang khóa</small>}</div><div className="result-cluster-items">{cluster.entries.map((entry,index) => <FusionCard key={entry.key} entry={entry} index={index} onOpen={openPlayer}/>)}</div></div>; })}</div> : <div className="result-grid">{fusedResults.map((entry,index) => <FusionCard key={entry.key} entry={entry} index={index} onOpen={openPlayer}/>)}</div>}</section></div>}
       {!loading && resultModality !== 'fusion' && groups.length > 0 && visibleGroups.length === 0 && <div className="empty-state">No {resultModality.toUpperCase()} results available.</div>}
-      {!loading && resultModality !== 'fusion' && visibleGroups.length > 0 && <div className={`result-columns view-${displayView}`}>{visibleGroups.map((group,index) => <><section className="result-group" style={{width: '100%'}} key={`${group.modality}-${group.query}`}><header><h2>{{visual:'Visual / Text',asr:'ASR transcript',ocr:'OCR text',object:'Object detection',topic:'Video Topic'}[group.modality]}</h2><span>{group.items.length}</span></header><p className="group-query">“{group.query}”</p>{!group.items.length ? <div className="empty-state">Không tìm thấy kết quả phù hợp.</div> : displayView === 'cluster' ? <div className="result-clusters">{groupByVideo(group.items).map(cluster => { const videoId = cluster.items[0]?.video_id || cluster.key; const locked = videoScope?.video_id === videoId; return <div className="result-cluster-row" key={cluster.key}><div className="result-cluster-video"><button type="button" className={`video-lock-button${locked ? ' active' : ''}`} onClick={() => toggleVideoScope(videoId)} aria-label={locked ? `Bỏ khóa ${videoId}` : `Khóa tìm kiếm vào ${videoId}`} aria-pressed={locked} title={locked ? 'Bỏ khóa video' : 'Khóa tìm kiếm vào video này'}><LockIcon locked={locked}/></button><strong>{videoId}</strong>{locked && <small>Đang khóa</small>}</div><div className="result-cluster-items">{cluster.items.map((item,itemIndex) => <ResultCard key={item.keyframe_id || item.segment_id || item.video_id} item={item} index={itemIndex} modality={group.modality} onOpen={openPlayer}/>)}</div></div>; })}</div> : <div className="result-grid">{group.items.map((item,itemIndex) => <ResultCard key={item.keyframe_id || item.segment_id || item.video_id} item={item} index={itemIndex} modality={group.modality} onOpen={openPlayer}/>)}</div>}</section></>)}</div>}
+      {!loading && resultModality !== 'fusion' && visibleGroups.length > 0 && <div className={`result-columns view-${displayView}`}>{visibleGroups.map((group,index) => <><section className="result-group" style={{width: '100%'}} key={`${group.modality}-${group.query}`}><header><h2>{{visual:'Visual / Text',asr:'ASR transcript',ocr:'OCR text',object:'Object detection',caption:'Caption',caption_semantic:'Caption (ngữ nghĩa)',topic:'Video Topic'}[group.modality]}</h2><span>{group.items.length}</span></header><p className="group-query">“{group.query}”</p>{!group.items.length ? <div className="empty-state">Không tìm thấy kết quả phù hợp.</div> : displayView === 'cluster' ? <div className="result-clusters">{groupByVideo(group.items).map(cluster => { const firstItem = cluster.items[0]; const videoId = firstItem?.video_id || cluster.key; const locked = videoScope?.video_id === videoId; return <div className="result-cluster-row" key={cluster.key}><div className="result-cluster-video"><button type="button" className={`video-lock-button${locked ? ' active' : ''}`} onClick={() => toggleVideoScope(videoId)} aria-label={locked ? `Bỏ khóa ${videoId}` : `Khóa tìm kiếm vào ${videoId}`} aria-pressed={locked} title={locked ? 'Bỏ khóa video' : 'Khóa tìm kiếm vào video này'}><LockIcon locked={locked}/></button><strong>{videoId}</strong>{locked && <small>Đang khóa</small>}</div><div className="result-cluster-items">{cluster.items.map((item,itemIndex) => <ResultCard key={item.keyframe_id || item.segment_id || item.video_id} item={item} index={itemIndex} modality={group.modality} onOpen={openPlayer}/>)}</div></div>; })}</div> : <div className="result-grid">{group.items.map((item,itemIndex) => <ResultCard key={item.keyframe_id || item.segment_id || item.video_id} item={item} index={itemIndex} modality={group.modality} onOpen={openPlayer}/>)}</div>}</section></>)}</div>}
       {player && <div className="player-backdrop" onMouseDown={event => event.target === event.currentTarget && setPlayer(null)}><section className="player-modal"><header><div><strong>{player.video_id}</strong><span>{player.start}s</span></div><button aria-label="Close video" onClick={() => setPlayer(null)}>×</button></header>{player.embedUrl ? <iframe src={player.embedUrl} title={player.video_id} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/> : <img src={player.frame_url}/>}<footer><a href={player.watchUrl} target="_blank" rel="noreferrer">Open video at {player.start}s</a></footer></section></div>}
     </main>
   </div>;
