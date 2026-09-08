@@ -1,0 +1,42 @@
+{
+  "source": "Kaggle MCP",
+  "notebook_url": "https://www.kaggle.com/code/thnhtrungnguynmif/aic-v2-l21-v001-extraction",
+  "ref": "thnhtrungnguynmif/aic-v2-l21-v001-extraction",
+  "title": "AIC V2 L21 V001 Extraction",
+  "notebook_id": 131969520,
+  "current_version_number": 17,
+  "session_status": "COMPLETE",
+  "last_run_time": "2026-08-23T02:21:51.301385Z",
+  "machine_shape": "NvidiaTeslaT4",
+  "enable_gpu": true,
+  "enable_internet": true,
+  "video_id": "L21_V001",
+  "pipeline_success": false,
+  "output_zip": {
+    "file_name": "L21_V001-v2-result.zip",
+    "bytes": 3870,
+    "sha256": "418A875808391E89AB990046E4B9ACFC8A3FB78B85A0CF39A6BB152A2D377434",
+    "local_path": "pipelines/kaggle/notebooks_V2/result/L21_V001-v2-result.zip",
+    "members": [
+      "pipeline-error.txt",
+      "pipeline-run.log",
+      "pipeline-summary.json",
+      "input-selection.json",
+      "00-download-L21-dataset.log",
+      "01-install-av-opencv-python-headless-pandas-pyarrow-pillow.log",
+      "02-install-open_clip_torch-timm-ftfy.log",
+      "03-install-scenedetect[opencv].log",
+      "__notebook__.ipynb"
+    ]
+  },
+  "completed_stages": [
+    {"name": "download-L21-dataset", "returncode": 0, "seconds": 151.95},
+    {"name": "install-av-opencv-python-headless-pandas-pyarrow-pillow", "returncode": 0, "seconds": 6.55},
+    {"name": "install-open_clip_torch-timm-ftfy", "returncode": 0, "seconds": 4.3},
+    {"name": "install-scenedetect[opencv]", "returncode": 0, "seconds": 5.9}
+  ],
+  "failed_stage": "install-paddlepaddle-gpu==3.3.1",
+  "error_type": "FileNotFoundError",
+  "error": "The generated log path contains https:/ and its parent directory does not exist.",
+  "v2_stages_executed": false
+}

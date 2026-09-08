@@ -1,0 +1,79 @@
+{
+  "checked_at": "2026-08-26",
+  "scope": "pipelines/kaggle/notebooks_V2",
+  "kaggle_execution_confirmed": true,
+  "kaggle_notebooks_successful": 0,
+  "kaggle_outputs_saved": 1,
+  "kaggle_notebook": {
+    "ref": "thnhtrungnguynmif/aic-v2-l21-v001-extraction",
+    "title": "AIC V2 L21 V001 Extraction",
+    "id": 131969520,
+    "current_version_number": 17,
+    "session_status": "COMPLETE",
+    "pipeline_success": false,
+    "machine_shape": "NvidiaTeslaT4",
+    "video_id": "L21_V001",
+    "output_zip": "L21_V001-v2-result.zip",
+    "output_zip_bytes": 3870,
+    "output_zip_sha256": "418A875808391E89AB990046E4B9ACFC8A3FB78B85A0CF39A6BB152A2D377434",
+    "stages_completed": [
+      "download-L21-dataset",
+      "install-av-opencv-python-headless-pandas-pyarrow-pillow",
+      "install-open_clip_torch-timm-ftfy",
+      "install-scenedetect[opencv]"
+    ],
+    "stages_not_started": [
+      "00-manifest",
+      "01-shot-keyframe-visual",
+      "02-ocr",
+      "03-asr",
+      "04-objects",
+      "05-context-fusion",
+      "06-index-pack",
+      "07-eval",
+      "08-hybrid-query"
+    ],
+    "failure": "FileNotFoundError while writing install-paddlepaddle-gpu log; URL slash became a path separator"
+  },
+  "notebooks": {
+    "count": 9,
+    "code_cells_total": 36,
+    "executed_cells_total": 0,
+    "output_items_total": 0,
+    "error_items_total": 0,
+    "items": [
+      {"stage": "00-manifest-normalize", "executed_cells": 0, "outputs": 0, "errors": 0},
+      {"stage": "01-shot-keyframe-visual", "executed_cells": 0, "outputs": 0, "errors": 0},
+      {"stage": "02-ocr-batched", "executed_cells": 0, "outputs": 0, "errors": 0},
+      {"stage": "03-asr-fast", "executed_cells": 0, "outputs": 0, "errors": 0},
+      {"stage": "04-objects-batched", "executed_cells": 0, "outputs": 0, "errors": 0},
+      {"stage": "05-context-fusion", "executed_cells": 0, "outputs": 0, "errors": 0},
+      {"stage": "06-index-pack", "executed_cells": 0, "outputs": 0, "errors": 0},
+      {"stage": "07-eval-benchmark", "executed_cells": 0, "outputs": 0, "errors": 0},
+      {"stage": "08-hybrid-query", "executed_cells": 0, "outputs": 0, "errors": 0}
+    ]
+  },
+  "artifact_markers_found": {
+    "success_markers": 0,
+    "error_markers": 0,
+    "batch_summaries": 0,
+    "index_manifests": 0,
+    "eval_reports": 0
+  },
+  "local_smoke_test": {
+    "run": true,
+    "status": "PASS",
+    "exit_code": 0,
+    "synthetic_video_id": "L99_V001",
+    "documents": {"frame": 2, "shot": 2, "event": 1},
+    "sparse_postings": 80,
+    "fts5": true,
+    "vector_dimension": 4,
+    "vectors_normalized": true,
+    "ann_built": false,
+    "ann_reason": "faiss is not installed in the local environment",
+    "latency_ms": {"p50": 2.14795, "p95": 2.66181, "p99": 2.700762},
+    "labeled_recall_at_1": {"doc_id": 0.25, "shot_id": 0.5, "video_id": 1.0},
+    "is_kaggle_result": false
+  }
+}
