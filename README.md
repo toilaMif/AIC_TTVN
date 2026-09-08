@@ -42,6 +42,13 @@ ZIP, đánh dấu đã xong kèm avatar người phụ trách, dùng để chọ
 
 ![Bộ đề thi](docs/screenshots/exam-question-bank.png)
 
+**Frame Player (xem video + chọn đáp án)** — mở khi bấm vào một kết quả tìm
+kiếm (tab mới): phát trực tiếp video nguồn (YouTube) tại đúng mốc thời gian
+của frame, kèm bảng MAP KEYFRAMES để tua chính xác tới từng keyframe và chọn
+làm đáp án cho câu hỏi đang trả lời.
+
+![Frame Player](docs/screenshots/frame-player.png)
+
 ## Kiến trúc
 
 ```text
